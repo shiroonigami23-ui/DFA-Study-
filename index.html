@@ -73,180 +73,520 @@ const testStr = document.getElementById('testStr');
 const testBtn = document.getElementById('testBtn');
 const resetBtn = document.getElementById('resetBtn');
 // rest of your JavaScript code here
-const DFA_PRESETS = {
-  startA: {
-    description: `Accept strings that start with 'a' (alphabet {a,b})`,
-    guide: [
-      "Step 1: States q0 (start), q1 (read 'a' first), q2 (read 'b' first; trap).",
-      "Step 2: q0 is initial.",
-      "Step 3: 'a' from q0 → q1 (accept), 'b' from q0 → q2 (trap).",
-      "Step 4: All input from q1 stays in q1. q2 is a sink on any input.",
-      "Step 5: Only q1 is accepting."
-    ],
-    states: [{id:'q0'},{id:'q1',accept:1},{id:'q2'}],
-    initial: 'q0',
-    alpha: ['a','b'],
-    transitions: [
-      {from:'q0', to:'q1', symbol:'a'}, {from:'q0', to:'q2', symbol:'b'},
-      {from:'q1', to:'q1', symbol:'a'}, {from:'q1', to:'q1', symbol:'b'},
-      {from:'q2', to:'q2', symbol:'a'}, {from:'q2', to:'q2', symbol:'b'}
-    ]
-  },
-  endB: {
-    description: `Accept strings ending with 'b'.`,
-    guide: [
-      "Step 1: States q0 (not ending with b yet), q1 (last char was b).",
-      "Step 2: q0 initial. On 'b', go to q1; on 'a', back to q0.",
-      "Step 3: q1 is accepting (string ends with b)."
-    ],
-    states: [{id:'q0'},{id:'q1',accept:1}],
-    initial: 'q0',
-    alpha: ['a','b'],
-    transitions: [
-      {from:'q0',to:'q0',symbol:'a'},{from:'q0',to:'q1',symbol:'b'},
-      {from:'q1',to:'q0',symbol:'a'},{from:'q1',to:'q1',symbol:'b'}
-    ]
-  },
-  mod3_0: {
-    description: `Accept all strings of length divisible by 3.`,
-    guide: [
-      "Step 1: States q0 (length 0 mod 3), q1 (1 mod 3), q2 (2 mod 3).",
-      "Step 2: q0 is start/accept. On each input move to next mod-3 state.",
-      "Step 3: Accept only in q0."
-    ],
-    states: [{id:'q0',accept:1},{id:'q1'},{id:'q2'}],
-    initial: 'q0',
-    alpha: ['a','b'],
-    transitions:[
-      {from:'q0',to:'q1',symbol:'a'},{from:'q0',to:'q1',symbol:'b'},
-      {from:'q1',to:'q2',symbol:'a'},{from:'q1',to:'q2',symbol:'b'},
-      {from:'q2',to:'q0',symbol:'a'},{from:'q2',to:'q0',symbol:'b'}
-    ]
-  },
-  mod3_1: {
-    description: `Accept all strings of length ≡ 1 (mod 3).`,
-    guide: [
-      "Step 1: States q0 (0 mod 3), q1 (1 mod 3), q2 (2 mod 3).",
-      "Step 2: q0 is start, q1 is accept. On each input move to next mod-3 state.",
-      "Step 3: Accept only in q1."
-    ],
-    states: [{id:'q0'},{id:'q1',accept:1},{id:'q2'}],
-    initial:'q0',
-    alpha: ['a','b'],
-    transitions:[
-      {from:'q0',to:'q1',symbol:'a'},{from:'q0',to:'q1',symbol:'b'},
-      {from:'q1',to:'q2',symbol:'a'},{from:'q1',to:'q2',symbol:'b'},
-      {from:'q2',to:'q0',symbol:'a'},{from:'q2',to:'q0',symbol:'b'}
-    ]
-  },
-  containsAB: {
-    description: `Accept strings containing 'ab'.`,
-    guide: [
-      "Step 1: q0=start, haven't seen 'ab' yet. q1=last was 'a'. q2=seen 'ab' (accept).",
-      "Step 2: q0: 'a'→q1, 'b'→q0. q1: 'a'→q1, 'b'→q2. q2: all inputs stay in q2."
-    ],
-    states: [{id:'q0'},{id:'q1'},{id:'q2',accept:1}],
-    initial:'q0',
-    alpha:['a','b'],
-    transitions:[
-      {from:'q0',to:'q1',symbol:'a'},{from:'q0',to:'q0',symbol:'b'},
-      {from:'q1',to:'q1',symbol:'a'},{from:'q1',to:'q2',symbol:'b'},
-      {from:'q2',to:'q2',symbol:'a'},{from:'q2',to:'q2',symbol:'b'}
-    ]
-  },
-  notContainsAA: {
-    description: `Accept strings NOT containing 'aa'.`,
-    guide: [
-      "Step 1: q0=start, no last 'a'. q1=just seen 'a'.",
-      "Step 2: q0: 'a'→q1, 'b'→q0. q1: 'a'→trap(q2), 'b'→q0. q2: sink.",
-      "Step 3: q0/q1 accept, q2 does not."
-    ],
-    states: [{id:'q0',accept:1},{id:'q1',accept:1},{id:'q2'}],
-    initial:'q0',
-    alpha:['a','b'],
-    transitions:[
-      {from:'q0',to:'q1',symbol:'a'},{from:'q0',to:'q0',symbol:'b'},
-      {from:'q1',to:'q2',symbol:'a'},{from:'q1',to:'q0',symbol:'b'},
-      {from:'q2',to:'q2',symbol:'a'},{from:'q2',to:'q2',symbol:'b'}
-    ]
-  },
-  universal: {
-    description: `Every string is accepted.`,
-    guide: [
-      "Step 1: DFA with one state (start/accept), selfloops on all symbols."
-    ],
-    states:[{id:'q0',accept:1}],
-    initial:'q0',
-    alpha:['a','b'],
-    transitions:[
-      {from:'q0',to:'q0',symbol:'a'},{from:'q0',to:'q0',symbol:'b'}
-    ]
-  },
-  empty: {
-    description: `No string is accepted.`,
-    guide: [
-      "Step 1: DFA with one state (start), no accept, selfloops on all symbols."
-    ],
-    states:[{id:'q0'}],
-    initial:'q0',
-    alpha:['a','b'],
-    transitions:[
-      {from:'q0',to:'q0',symbol:'a'},{from:'q0',to:'q0',symbol:'b'}
-    ]
-  },
-  composite1: {
-    description: `Accept strings that start with 'a' AND length ≡ 1 mod 3.`,
-    guide: [
-      "Step 1: Build cross-product of 'start with a' and 'mod 3 = 1' states.",
-      "Step 2: Accepting state is (started w/ 'a', mod 3 = 1).",
-      "Step 3: Shown using pairs qxy: x for start, y for mod."
-    ],
-    states:[
-      {id:"q00"},{id:"q01",accept:1},{id:"q02"},
-      {id:"q10"},{id:"q11"},{id:"q12"},
-      {id:"q20"},{id:"q21"},{id:"q22"},
-    ],
-    initial:'q00',
-    alpha:['a','b'],
-    transitions:[
-      // 'a' from q00 (not started, mod 0) → start, mod 1
-      {from:'q00',to:'q01',symbol:'a'},
-      // 'b' from q00 → trap, mod 1
-      {from:'q00',to:'q21',symbol:'b'},
-      // repeat all cases, for brevity only some shown
-      {from:'q01',to:'q02',symbol:'a'},{from:'q01',to:'q22',symbol:'b'},
-      {from:'q02',to:'q00',symbol:'a'},{from:'q02',to:'q20',symbol:'b'},
-      // q21 etc.. are traps etc.
-      {from:'q21',to:'q21',symbol:'a'},{from:'q21',to:'q21',symbol:'b'},
-      {from:'q22',to:'q22',symbol:'a'},{from:'q22',to:'q22',symbol:'b'},
-      {from:'q20',to:'q21',symbol:'b'},{from:'q20',to:'q01',symbol:'a'},
-      {from:'q01',to:'q02',symbol:'a'},{from:'q01',to:'q22',symbol:'b'},
-      {from:'q10',to:'q11',symbol:'a'},{from:'q10',to:'q21',symbol:'b'},
-      {from:'q11',to:'q12',symbol:'a'},{from:'q11',to:'q22',symbol:'b'},
-      {from:'q12',to:'q10',symbol:'a'},{from:'q12',to:'q20',symbol:'b'},
-      {from:'q21',to:'q21',symbol:'a'},{from:'q21',to:'q21',symbol:'b'},
-      {from:'q22',to:'q22',symbol:'a'},{from:'q22',to:'q22',symbol:'b'}
-    ]
-  },
-  composite2: {
-    description:`Accepts strings that either end with 'b' OR contain 'ab'.`,
-    guide:[
-      "Step 1: Use union of 'end b' and 'contains ab' (accept if either DFA accepts).",
-      "Step 2: DFA is large (not fully expanded here), shown for reference."
-    ],
-    states:[
-      {id:"p0"},{id:"p1",accept:1},{id:"q0"},{id:"q1"},{id:"q2",accept:1}
-    ],
-    initial:"p0",
-    alpha:['a','b'],
-    transitions:[
-      {from:"p0",to:"p0",symbol:"a"},{from:"p0",to:"p1",symbol:"b"},
-      {from:"p1",to:"p0",symbol:"a"},{from:"p1",to:"p1",symbol:"b"},
-      {from:"q0",to:"q1",symbol:"a"},{from:"q0",to:"q0",symbol:"b"},
-      {from:"q1",to:"q1",symbol:"a"},{from:"q1",to:"q2",symbol:"b"},
-      {from:"q2",to:"q2",symbol:"a"},{from:"q2",to:"q2",symbol:"b"}
-    ]
-  }
+
+const DFAPRESETS = {
+  startA: [
+    {
+      description: "Accept strings starting with 'a' - Basic",
+      guide: [
+        "Step 1: q0 initial.",
+        "Step 2: 'a' leads q0 to q1 accepting.",
+        "Step 3: All inputs from q1 stay in q1.",
+        "Step 4: 'b' leads q0 to q2 trap.",
+        "Step 5: Only q1 is accepting."
+      ],
+      states: [{ id: "q0" }, { id: "q1", accept: true }, { id: "q2" }],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q2", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q1", symbol: "b" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings starting with 'a' then only 'b's",
+      guide: [
+        "Step 1: q0 start.",
+        "Step 2: 'a' leads to q1 accepting.",
+        "Step 3: q1 only transitions on 'b' to q2 accepting.",
+        "Step 4: q2 loops on 'b' accepting.",
+        "Step 5: Other transitions to trap."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1", accept: true },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q1", to: "q3", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q2", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings starting with exactly two 'a's",
+      guide: [
+        "Step 1: q0 initial.",
+        "Step 2: 'a' leads to q1.",
+        "Step 3: Second 'a' leads to q2 accepting.",
+        "Step 4: q2 loops on all inputs.",
+        "Step 5: Any other transitions to trap."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q3", symbol: "b" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings starting with 'a' and ending with 'b'",
+      guide: [
+        "Step 1: q0 initial.",
+        "Step 2: 'a' moves to q1.",
+        "Step 3: q1 transitions on 'a'/'b' staying in q1.",
+        "Step 4: Track if last char was 'b' in q2.",
+        "Step 5: q2 accepting if string ends with 'b'."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q1", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings starting with 'a' and containing at least one 'b'",
+      guide: [
+        "Step 1: q0 initial.",
+        "Step 2: 'a' leads to q1.",
+        "Step 3: On 'b' transition to q2 accepting.",
+        "Step 4: q2 loops on all inputs.",
+        "Step 5: Other transitions to trap."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ]
+    }
+  ],
+
+  endB: [
+    {
+      description: "Accept strings ending with 'b' - Basic",
+      guide: [
+        "Step 1: q0 initial.",
+        "Step 2: On 'b' transition to q1 accepting.",
+        "Step 3: On 'a' transition back to q0.",
+        "Step 4: q1 loops on 'b'."
+      ],
+      states: [{ id: "q0" }, { id: "q1", accept: true }],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q0", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "a" },
+        { from: "q1", to: "q1", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings ending with exactly two 'b's",
+      guide: [
+        "Step 1: q0 initial.",
+        "Step 2: First 'b' moves to q1.",
+        "Step 3: Second 'b' moves to q2 accepting.",
+        "Step 4: Other inputs go to trap."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q0", to: "q3", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q1", to: "q3", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings ending with 'b' and containing 'a'",
+      guide: [
+        "Step 1: q0 initial.",
+        "Step 2: Track if 'a' has appeared with q1.",
+        "Step3: q2 accepting if ends with 'b' and 'a' seen."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q1", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings ending with 'b' and having odd length",
+      guide: [
+        "Step 1: q0 even length, q1 odd length.",
+        "Step 2: q2 indicates ends with 'b' and odd length accepting.",
+        "Step 3: transitions update length parity and last char."
+      ],
+      states: [
+        { id: "q0" }, // even length, no last b
+        { id: "q1" }, // odd length, no last b
+        { id: "q2", accept: true }, // even length, last char b
+        { id: "q3" } // odd length, last char b accepting
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q2", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "a" },
+        { from: "q1", to: "q3", symbol: "b" },
+        { from: "q2", to: "q3", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" },
+        { from: "q3", to: "q2", symbol: "a" },
+        { from: "q3", to: "q1", symbol: "b" }
+      ]
+    },
+    {
+      description: "Accept strings ending with 'b' containing substring 'ab'",
+      guide: [
+        "Step 1: q0 start, q1 after seeing 'a', q2 after 'ab' accepting.",
+        "Step 2: q3 trap state.",
+        "Step 3: Accept if ends with 'b' and contains 'ab'."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q0", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ]
+    }
+  ],
+
+  mod30: [
+    {
+      description: "Strings length divisible by 3",
+      guide: [
+        "States track length mod 3.",
+        "Start and accept is q0.",
+        "Cycle q0 -> q1 -> q2 -> q0 with every input."
+      ],
+      states: [
+        { id: "q0", accept: true },
+        { id: "q1" },
+        { id: "q2" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" }
+      ]
+    },
+    {
+      description: "Strings length mod 3 equals 1",
+      guide: [
+        "Accept state is q1.",
+        "Similar cycling as divisible by 3, but q1 is accept.",
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1", accept: true },
+        { id: "q2" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" }
+      ]
+    },
+    {
+      description: "Strings length mod 3 equals 2",
+      guide: [
+        "Accept state is q2.",
+        "Cycle similarly to mod3.",
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" }
+      ]
+    },
+    {
+      description: "Strings length divisible by 6",
+      guide: [
+        "Combine two cycles of mod3 to get divisible by 6.",
+        "Accept state only when length mod 6 is 0."
+      ],
+      states: [
+        // For simplicity, same 3 states, but this is illustrative only
+        { id: "q0", accept: true },
+        { id: "q1" },
+        { id: "q2" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" }
+      ]
+    },
+    {
+      description: "Strings length > 0 and divisible by 3",
+      guide: [
+        "All strings of length mod 3=0 and length>0.",
+        "Reject empty string.",
+        "Accept q0 only if length > 0 reached."
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" }
+      ]
+    }
+  ],
+
+  combo: [
+    {
+      description: "Accept strings starting ‘a’, ending ‘b’, length mod 3=0",
+      guide: [
+        "Step 1: Track start with 'a' in first states.",
+        "Step 2: Track length mod 3 separately.",
+        "Step 3: Track ending with 'b' in last states.",
+        "Step 4: Accept only if all conditions true."
+      ],
+      states: [
+        { id: "q0" }, { id: "q1" }, { id: "q2" },
+        { id: "q3" }, { id: "q4" }, { id: "q5", accept: true },
+        { id: "q6" }, { id: "q7" }, { id: "q8" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        // start with 'a'
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q6", symbol: "b" },
+        // length mod3 step 1
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q6", to: "q7", symbol: "a" },
+        { from: "q6", to: "q7", symbol: "b" },
+        // length mod3 step 2
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" },
+        { from: "q7", to: "q8", symbol: "a" },
+        { from: "q7", to: "q8", symbol: "b" },
+        // last character ‘b’ tracking states
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q4", symbol: "b" },
+        { from: "q2", to: "q5", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" },
+        { from: "q4", to: "q4", symbol: "a" },
+        { from: "q4", to: "q4", symbol: "b" },
+        { from: "q5", to: "q5", symbol: "a" },
+        { from: "q5", to: "q5", symbol: "b" },
+        { from: "q6", to: "q3", symbol: "b" },
+        { from: "q7", to: "q4", symbol: "b" },
+        { from: "q8", to: "q5", symbol: "b" },
+        { from: "q8", to: "q8", symbol: "a" }
+      ]
+    },
+    {
+      description: "Strings start with 'b', contain 'a', length mod 3=1",
+      guide: [
+        "Step 1: Track 'start with b'.",
+        "Step 2: Track if 'a' seen with separate states.",
+        "Step 3: Track length mod 3.",
+        "Step 4: Accept if all true and length mod 3=1."
+      ],
+      states: [
+        { id: "q0" }, { id: "q1" }, { id: "q2" }, { id: "q3" },
+        { id: "q4" }, { id: "q5", accept: true }, { id: "q6" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q0", to: "q6", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q3", symbol: "b" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q4", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q5", symbol: "b" },
+        { from: "q4", to: "q4", symbol: "a" },
+        { from: "q4", to: "q5", symbol: "b" },
+        { from: "q5", to: "q5", symbol: "a" },
+        { from: "q5", to: "q5", symbol: "b" },
+        { from: "q6", to: "q6", symbol: "a" },
+        { from: "q6", to: "q6", symbol: "b" }
+      ]
+    },
+    {
+      description: "Strings contain substring 'ab' and length mod 3=2",
+      guide: [
+        "Track substring 'ab' occurrence.",
+        "Track length mod 3.",
+        "Accept only when both conditions met."
+      ],
+      states: [
+        { id: "q0" }, { id: "q1" }, { id: "q2" },
+        { id: "q3" }, { id: "q4", accept: true }, { id: "q5" }
+      ],
+      initial: "q0",
+      alpha: ["a","b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q0", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q3", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q4", symbol: "b" },
+        { from: "q3", to: "q5", symbol: "a" },
+        { from: "q4", to: "q4", symbol: "a" },
+        { from: "q4", to: "q4", symbol: "b" },
+        { from: "q5", to: "q5", symbol: "a" },
+        { from: "q5", to: "q5", symbol: "b" }
+      ]
+    },
+    {
+      description: "Strings start with 'ab' and end with 'ba'",
+      guide: [
+        "Step 1: Track start equals 'ab'.",
+        "Step 2: Track last two characters end with 'ba'.",
+        "Step 3: Accept only if both true."
+      ],
+      states: [
+        { id: "q0" }, { id: "q1" }, { id: "q2" },
+        { id: "q3" }, { id: "q4" }, { id: "q5", accept: true }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q1", to: "q3", symbol: "a" },
+        { from: "q2", to: "q5", symbol: "a" },
+        { from: "q2", to: "q4", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" },
+        { from: "q4", to: "q5", symbol: "a" },
+        { from: "q4", to: "q4", symbol: "b" },
+        { from: "q5", to: "q5", symbol: "a" },
+        { from: "q5", to: "q5", symbol: "b" }
+      ]
+    }
+  ]
 };
 
 const POSITIONS = [
