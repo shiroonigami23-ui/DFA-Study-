@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Animated DFA Learning Tool</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+      margin: 0; 
+      padding: 20px;
+      min-height: 100vh;
+    }
+    #app { 
+      max-width: 1000px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    h1 { 
+      text-align: center; 
+      margin-bottom: 20px; 
+      color: #2c3e50;
+      font-size: 2.5em;
+      font-weight: 300;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #gui, #testPanel { 
+      display: flex; 
+      align-items: center; 
+      gap: 15px; 
+      justify-content: center; 
+      margin-bottom: 15px; 
+      flex-wrap: wrap;
+    }
+    #guide { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px; 
+      border-radius: 12px; 
+      min-height: 80px; 
+      font-size: 16px; 
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      line-height: 1.4;
+    }
+    #dfaSVG { 
+      display: block; 
+      margin: 0 auto; 
+      background: #fafbfc; 
+      border-radius: 12px; 
+      border: 2px solid #e1e8ed;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    #output { 
+      min-height: 30px; 
+      font-weight: 600; 
+      text-align: center; 
+      font-size: 18px; 
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+    .final { stroke: #27ae60 !important; stroke-width: 4 !important; }
+    .initial { stroke-dasharray: 8 6 !important; stroke: #e74c3c !important; }
+    .active { fill: #f39c12 !important; filter: drop-shadow(0 0 15px #f39c12) !important; }
+    .arrow { stroke: #3498db; stroke-width: 2; marker-end: url(#arr); transition: all 0.3s ease; }
+    .arrow.active { stroke-width: 4 !important; stroke: #e67e22 !important; }
+    .selfloop { stroke: #3498db; stroke-width: 2.5; fill: none; transition: all 0.3s ease; }
+    .selfloop.active { stroke: #e67e22 !important; stroke-width: 4 !important; }
+    .selfloopLabel { font-size: 14px; fill: #2c3e50; font-weight: bold; }
+    .stateLabel { font-size: 16px; font-weight: bold; fill: #2c3e50; }
+    .transLabel { font-size: 14px; fill: #34495e; font-weight: bold; }
+    
+    select, input, button {
+      padding: 10px 15px;
+      border: 2px solid #bdc3c7;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+    
+    select:focus, input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    button {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    button:hover {
+      background: linear-gradient(135deg, #2980b9, #1f639a);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    button:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    #constructionControlPanel {
+      margin: 15px 0;
+      text-align: center;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 8px;
+    }
+    
+    #problemDragPanel {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .drag-item {
+      padding: 8px 15px;
+      background: linear-gradient(135deg, #16a085, #1abc9c);
+      color: white;
+      border-radius: 6px;
+      cursor: grab;
+      font-size: 12px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .drag-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .drag-item:active {
+      cursor: grabbing;
+    }
+    
+    #problemDropZone {
+      display: inline-block;
+      padding: 15px 25px;
+      border: 3px dashed #95a5a6;
+      min-width: 150px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      text-align: center;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+    
+    #problemDropZone.drag-over {
+      border-color: #3498db;
+      background: #ebf3fd;
+      transform: scale(1.05);
+    }
+    
+    .success { color: #27ae60; }
+    .error { color: #e74c3c; }
+    .info { color: #3498db; }
+    
+    @media (max-width: 768px) {
+      #app {
+        max-width: 100%;
+        padding: 15px;
+        margin: 10px;
+      }
+      #gui, #testPanel {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      #dfaSVG {
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+      }
+      h1 {
+        font-size: 2em;
+      }
+      #problemDragPanel {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>🤖 Animated DFA Learning Tool</h1>
+    
+    <div id="gui">
+      <div>
+        <label for="dfaType">Select DFA Type:&nbsp;</label>
+        <select id="dfaType">
+          <option value="">Choose a DFA type...</option>
+        </select>
+      </div>
+    </div>
+    
+    <div id="problemDragPanel"></div>
+    
+    <div id="problemDropZone">
+      <span id="dropText">🎯 Drop variation here or select from dropdown</span>
+    </div>
+    
+    <div id="guide">🚀 Select a DFA type to see construction steps and run animation.</div>
+    
+    <div id="constructionControlPanel">
+      <button id="prevDesignStepBtn" disabled>⬅️ Prev Step</button>
+      <button id="nextDesignStepBtn" disabled>Next Step ➡️</button>
+      <label style="margin-left: 15px;">
+        <input type="checkbox" id="autoDesignPlayToggle" checked> 
+        🎬 Auto Play Construction
+      </label>
+    </div>
+    
+    <svg id="dfaSVG" width="900" height="380"></svg>
+    
+    <div id="testPanel">
+      <label>🧪 Test Input:&nbsp;
+        <input id="testStr" maxlength="30" size="20" placeholder="Enter string (a,b)" />
+      </label>
+      <button id="testBtn">🎮 Test & Animate</button>
+      <button id="resetBtn">🔄 Reset</button>
+    </div>
+    
+    <div id="output"></div>
+  </div>
+
+<script>
+// Global variables
+let CURRENT_DFA = null;
+let STATE_POS = {};
+let ANIMATION = null;
+let constructionStepIndex = -1;
+let constructionAutoPlay = true;
+let constructionAutoTimeout = null;
+let currentConstructionSteps = null;
+let currentConstructionHighlight = {};
+
+// Error handling
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+  console.error(`JavaScript error: ${msg} at ${lineNo}:${columnNo}`);
+  return false;
+};
+
+// DOM elements
+const guide = document.getElementById('guide');
+const output = document.getElementById('output');
+const testStr = document.getElementById('testStr');
+const testBtn = document.getElementById('testBtn');
+const resetBtn = document.getElementById('resetBtn');
+const dfaType = document.getElementById('dfaType');
+const problemDragPanel = document.getElementById('problemDragPanel');
+const problemDropZone = document.getElementById('problemDropZone');
+const dropText = document.getElementById('dropText');
+
+// DFA Presets - Complete and Enhanced
+const DFAPRESETS = {
+  startA: [
+    {
+      description: "Accept strings starting with 'a' - Basic",
+      guide: [
+        "Step 1: q0 is the initial state",
+        "Step 2: On 'a', transition to accepting state q1",
+        "Step 3: q1 loops on all inputs (stays accepting)",
+        "Step 4: On 'b' from q0, go to trap state q2",
+        "Step 5: Only q1 is accepting"
+      ],
+      states: [{ id: "q0" }, { id: "q1", accept: true }, { id: "q2" }],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q2", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q1", symbol: "b" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0", highlight: { activeState: "q0" } },
+        { text: "Add accepting state q1", highlight: { activeState: "q1" } },
+        { text: "Add trap state q2", highlight: { activeState: "q2" } },
+        { text: "Add transition q0 → q1 on 'a'", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Add transition q0 → q2 on 'b'", highlight: { transitionArrow: { from: "q0", to: "q2", symbol: "b" } } },
+        { text: "Add self-loops on q1 for all inputs", highlight: { transitionArrow: { from: "q1", to: "q1", symbol: "a" } } },
+        { text: "Mark q1 as accepting (double circle)", highlight: { activeState: "q1" } }
+      ]
+    },
+    {
+      description: "Accept strings starting with 'a' then only 'b's",
+      guide: [
+        "Step 1: q0 is initial state",
+        "Step 2: 'a' leads to q1 (accepting)",
+        "Step 3: From q1, only 'b' transitions to q2 (accepting)",
+        "Step 4: q2 loops on 'b' only",
+        "Step 5: Other transitions go to trap"
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1", accept: true },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q1", to: "q3", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q2", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0", highlight: { activeState: "q0" } },
+        { text: "Add accepting state q1", highlight: { activeState: "q1" } },
+        { text: "Add accepting state q2", highlight: { activeState: "q2" } },
+        { text: "Add trap state q3", highlight: { activeState: "q3" } },
+        { text: "Add transition q0 → q1 on 'a'", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Add transition q1 → q2 on 'b'", highlight: { transitionArrow: { from: "q1", to: "q2", symbol: "b" } } },
+        { text: "Add self-loop on q2 for 'b'", highlight: { transitionArrow: { from: "q2", to: "q2", symbol: "b" } } }
+      ]
+    },
+    {
+      description: "Accept strings starting with exactly two 'a's",
+      guide: [
+        "Step 1: q0 initial state",
+        "Step 2: First 'a' leads to q1",
+        "Step 3: Second 'a' leads to q2 (accepting)",
+        "Step 4: q2 loops on all inputs",
+        "Step 5: Wrong transitions go to trap"
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true },
+        { id: "q3" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q3", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q3", symbol: "b" },
+        { from: "q2", to: "q2", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" },
+        { from: "q3", to: "q3", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0", highlight: { activeState: "q0" } },
+        { text: "Add state q1 (after first 'a')", highlight: { activeState: "q1" } },
+        { text: "Add accepting state q2", highlight: { activeState: "q2" } },
+        { text: "Add trap state q3", highlight: { activeState: "q3" } },
+        { text: "Add transition q0 → q1 on 'a'", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Add transition q1 → q2 on 'a'", highlight: { transitionArrow: { from: "q1", to: "q2", symbol: "a" } } },
+        { text: "Add self-loops on q2", highlight: { transitionArrow: { from: "q2", to: "q2", symbol: "a" } } }
+      ]
+    }
+  ],
+  
+  endB: [
+    {
+      description: "Accept strings ending with 'b' - Basic",
+      guide: [
+        "Step 1: q0 is initial state",
+        "Step 2: On 'b', transition to q1 (accepting)",
+        "Step 3: On 'a', stay in q0 or return to q0",
+        "Step 4: Track last character to determine acceptance"
+      ],
+      states: [{ id: "q0" }, { id: "q1", accept: true }],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q0", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "a" },
+        { from: "q1", to: "q1", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0", highlight: { activeState: "q0" } },
+        { text: "Add accepting state q1", highlight: { activeState: "q1" } },
+        { text: "Add transition q0 → q1 on 'b'", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "b" } } },
+        { text: "Add transition q1 → q0 on 'a'", highlight: { transitionArrow: { from: "q1", to: "q0", symbol: "a" } } },
+        { text: "Add self-loops", highlight: { transitionArrow: { from: "q1", to: "q1", symbol: "b" } } }
+      ]
+    },
+    {
+      description: "Accept strings ending with exactly 'bb'",
+      guide: [
+        "Step 1: Track last two characters",
+        "Step 2: Need exactly two consecutive 'b's at end",
+        "Step 3: Any 'a' resets the count"
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q0", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0", highlight: { activeState: "q0" } },
+        { text: "Add state q1 (after one 'b')", highlight: { activeState: "q1" } },
+        { text: "Add accepting state q2", highlight: { activeState: "q2" } },
+        { text: "Add transitions for 'bb' pattern", highlight: { transitionArrow: { from: "q1", to: "q2", symbol: "b" } } }
+      ]
+    }
+  ],
+
+  evenOdd: [
+    {
+      description: "Accept strings of even length",
+      guide: [
+        "Step 1: Track length parity with two states",
+        "Step 2: q0 represents even length (accepting)",
+        "Step 3: q1 represents odd length",
+        "Step 4: Toggle between states on each input"
+      ],
+      states: [
+        { id: "q0", accept: true },
+        { id: "q1" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "a" },
+        { from: "q1", to: "q0", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0 (even length)", highlight: { activeState: "q0" } },
+        { text: "Add state q1 (odd length)", highlight: { activeState: "q1" } },
+        { text: "Add transitions that toggle parity", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Mark q0 as accepting (even length)", highlight: { activeState: "q0" } }
+      ]
+    },
+    {
+      description: "Accept strings of odd length",
+      guide: [
+        "Step 1: Similar to even length DFA",
+        "Step 2: q1 represents odd length (accepting)",
+        "Step 3: q0 represents even length",
+        "Step 4: Toggle between states on each input"
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1", accept: true }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "a" },
+        { from: "q1", to: "q0", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0 (even length)", highlight: { activeState: "q0" } },
+        { text: "Add accepting state q1 (odd length)", highlight: { activeState: "q1" } },
+        { text: "Add transitions that toggle parity", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Mark q1 as accepting (odd length)", highlight: { activeState: "q1" } }
+      ]
+    }
+  ],
+
+  substring: [
+    {
+      description: "Accept strings containing substring 'ab'",
+      guide: [
+        "Step 1: q0 initial, q1 after seeing 'a'",
+        "Step 2: q2 accepting after seeing 'ab'",
+        "Step 3: Once in q2, stay accepting",
+        "Step 4: Reset appropriately on different inputs"
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2", accept: true }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q0", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q1", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add start state q0", highlight: { activeState: "q0" } },
+        { text: "Add state q1 (after 'a')", highlight: { activeState: "q1" } },
+        { text: "Add accepting state q2", highlight: { activeState: "q2" } },
+        { text: "Add transition q0 → q1 on 'a'", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Add transition q1 → q2 on 'b'", highlight: { transitionArrow: { from: "q1", to: "q2", symbol: "b" } } },
+        { text: "Add appropriate self-loops", highlight: { transitionArrow: { from: "q2", to: "q2", symbol: "b" } } }
+      ]
+    },
+    {
+      description: "Accept strings containing substring 'aba'",
+      guide: [
+        "Step 1: Track progress toward 'aba'",
+        "Step 2: q1 after 'a', q2 after 'ab', q3 after 'aba'",
+        "Step 3: Handle overlapping patterns correctly",
+        "Step 4: Once pattern found, stay accepting"
+      ],
+      states: [
+        { id: "q0" },
+        { id: "q1" },
+        { id: "q2" },
+        { id: "q3", accept: true }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q0", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q3", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" },
+        { from: "q3", to: "q1", symbol: "a" },
+        { from: "q3", to: "q3", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add states q0, q1, q2, q3", highlight: { activeState: "q0" } },
+        { text: "Add transition q0 → q1 on 'a'", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Add transition q1 → q2 on 'b'", highlight: { transitionArrow: { from: "q1", to: "q2", symbol: "b" } } },
+        { text: "Add transition q2 → q3 on 'a'", highlight: { transitionArrow: { from: "q2", to: "q3", symbol: "a" } } },
+        { text: "Handle overlapping patterns", highlight: { transitionArrow: { from: "q3", to: "q1", symbol: "a" } } }
+      ]
+    }
+  ],
+
+  modular: [
+    {
+      description: "Strings with length divisible by 3",
+      guide: [
+        "Step 1: Three states represent length mod 3",
+        "Step 2: q0 = length ≡ 0 (mod 3) - accepting",
+        "Step 3: q1 = length ≡ 1 (mod 3)",
+        "Step 4: q2 = length ≡ 2 (mod 3)",
+        "Step 5: Cycle through states with each input"
+      ],
+      states: [
+        { id: "q0", accept: true },
+        { id: "q1" },
+        { id: "q2" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q1", symbol: "b" },
+        { from: "q1", to: "q2", symbol: "a" },
+        { from: "q1", to: "q2", symbol: "b" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add states for length mod 3", highlight: { activeState: "q0" } },
+        { text: "q0 → q1 → q2 → q0 cycle", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Mark q0 as accepting", highlight: { activeState: "q0" } }
+      ]
+    },
+    {
+      description: "Count of 'a's divisible by 2",
+      guide: [
+        "Step 1: Track count of 'a's modulo 2",
+        "Step 2: q0 = even count of 'a's (accepting)",
+        "Step 3: q1 = odd count of 'a's",
+        "Step 4: Toggle on 'a', stay same on 'b'"
+      ],
+      states: [
+        { id: "q0", accept: true },
+        { id: "q1" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q0", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "a" },
+        { from: "q1", to: "q1", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add state q0 (even 'a' count)", highlight: { activeState: "q0" } },
+        { text: "Add state q1 (odd 'a' count)", highlight: { activeState: "q1" } },
+        { text: "Toggle on 'a', stay on 'b'", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } }
+      ]
+    }
+  ],
+
+  advanced: [
+    {
+      description: "Equal number of 'a's and 'b's",
+      guide: [
+        "Step 1: Track difference between 'a' and 'b' counts",
+        "Step 2: q0 = equal counts (accepting)",
+        "Step 3: q1 = more 'a's than 'b's",
+        "Step 4: q2 = more 'b's than 'a's"
+      ],
+      states: [
+        { id: "q0", accept: true },
+        { id: "q1" },
+        { id: "q2" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q2", symbol: "b" },
+        { from: "q1", to: "q0", symbol: "b" },
+        { from: "q1", to: "q1", symbol: "a" },
+        { from: "q2", to: "q0", symbol: "a" },
+        { from: "q2", to: "q2", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add states for count difference", highlight: { activeState: "q0" } },
+        { text: "Track difference with transitions", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Accept when counts are equal", highlight: { activeState: "q0" } }
+      ]
+    },
+    {
+      description: "Palindromes of length ≤ 3",
+      guide: [
+        "Step 1: Accept empty string and single chars",
+        "Step 2: Accept two-char palindromes: aa, bb",
+        "Step 3: Accept three-char palindromes: aba, bab",
+        "Step 4: Reject longer strings"
+      ],
+      states: [
+        { id: "q0", accept: true },
+        { id: "q1", accept: true },
+        { id: "q2", accept: true },
+        { id: "q3", accept: true },
+        { id: "q4", accept: true },
+        { id: "q5" }
+      ],
+      initial: "q0",
+      alpha: ["a", "b"],
+      transitions: [
+        { from: "q0", to: "q1", symbol: "a" },
+        { from: "q0", to: "q2", symbol: "b" },
+        { from: "q1", to: "q3", symbol: "a" },
+        { from: "q1", to: "q4", symbol: "b" },
+        { from: "q2", to: "q4", symbol: "a" },
+        { from: "q2", to: "q3", symbol: "b" },
+        { from: "q3", to: "q5", symbol: "a" },
+        { from: "q3", to: "q5", symbol: "b" },
+        { from: "q4", to: "q3", symbol: "a" },
+        { from: "q4", to: "q5", symbol: "b" },
+        { from: "q5", to: "q5", symbol: "a" },
+        { from: "q5", to: "q5", symbol: "b" }
+      ],
+      constructionSteps: [
+        { text: "Add states for each position", highlight: { activeState: "q0" } },
+        { text: "Handle single characters", highlight: { transitionArrow: { from: "q0", to: "q1", symbol: "a" } } },
+        { text: "Handle two-char palindromes", highlight: { transitionArrow: { from: "q1", to: "q3", symbol: "a" } } },
+        { text: "Handle three-char palindromes", highlight: { transitionArrow: { from: "q4", to: "q3", symbol: "a" } } }
+      ]
+    }
+  ]
+};
+
+// State positioning for different numbers of states
+const POSITIONS = [
+  [], // 0 states
+  [{x:150,y:190}], // 1 state
+  [{x:100,y:190},{x:300,y:190}], // 2 states
+  [{x:80,y:190},{x:220,y:120},{x:360,y:190}], // 3 states
+  [{x:80,y:140},{x:80,y:240},{x:320,y:140},{x:320,y:240}], // 4 states
+  [{x:80,y:100},{x:80,y:280},{x:320,y:100},{x:320,y:280},{x:200,y:190}], // 5 states
+  [{x:70,y:80},{x:70,y:300},{x:200,y:80},{x:200,y:300},{x:330,y:80},{x:330,y:300}], // 6 states
+  [{x:60,y:80},{x:60,y:300},{x:180,y:80},{x:180,y:300},{x:300,y:80},{x:300,y:300},{x:180,y:190}], // 7 states
+  [{x:60,y:70},{x:60,y:310},{x:160,y:70},{x:160,y:310},{x:260,y:70},{x:260,y:310},{x:360,y:70},{x:360,y:310}], // 8 states
+  [{x:50,y:60},{x:50,y:320},{x:150,y:60},{x:150,y:320},{x:250,y:60},{x:250,y:320},{x:350,y:60},{x:350,y:320},{x:200,y:190}] // 9 states
+];
+
+// Initialize the application
+function init() {
+  populateDropdown();
+  setupEventHandlers();
+  setupDragAndDrop();
+  clearSVG();
+  
+  // Set initial message
+  guide.innerHTML = "🚀 Select a DFA type to see construction steps and run animation.";
+  output.innerHTML = "";
+}
+
+// Populate the main dropdown with DFA types
+function populateDropdown() {
+  dfaType.innerHTML = '<option value="">Choose a DFA type...</option>';
+  Object.keys(DFAPRESETS).forEach(key => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = formatCategoryName(key);
+    dfaType.appendChild(option);
+  });
+}
+
+// Format category names for display
+function formatCategoryName(key) {
+  const names = {
+    startA: "🔤 Strings starting with 'a'",
+    endB: "🔚 Strings ending with 'b'",
+    evenOdd: "📏 Even/Odd length strings",
+    substring: "🔍 Containing substrings",
+    modular: "🧮 Modular arithmetic",
+    advanced: "🚀 Advanced patterns"
+  };
+  return names[key] || key;
+}
+
+// Setup drag and drop functionality
+function setupDragAndDrop() {
+  problemDropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    problemDropZone.classList.add('drag-over');
+  });
+  
+  problemDropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    problemDropZone.classList.remove('drag-over');
+  });
+  
+  problemDropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    problemDropZone.classList.remove('drag-over');
+    
+    const type = e.dataTransfer.getData('text/plain').split('-')[0];
+    const idx = parseInt(e.dataTransfer.getData('text/plain').split('-')[1]);
+    
+    if (type && idx !== undefined) {
+      loadDFA(type, idx);
+      dropText.textContent = `✅ Loaded: ${DFAPRESETS[type][idx].description}`;
+      setTimeout(() => {
+        dropText.textContent = "🎯 Drop variation here or select from dropdown";
+      }, 3000);
+    }
+  });
+}
+
+// Setup event handlers
+function setupEventHandlers() {
+  dfaType.addEventListener('change', (e) => {
+    if (e.target.value) {
+      populateDragPanel(e.target.value);
+      loadDFA(e.target.value, 0);
+    } else {
+      clearDragPanel();
+      clearSVG();
+      guide.innerHTML = "🚀 Select a DFA type to see construction steps and run animation.";
+    }
+  });
+
+  testBtn.addEventListener('click', testString);
+  resetBtn.addEventListener('click', resetAnimation);
+  
+  // Construction control buttons
+  document.getElementById("prevDesignStepBtn").addEventListener("click", () => {
+    constructionAutoPlay = false;
+    document.getElementById("autoDesignPlayToggle").checked = false;
+    prevConstructionStep();
+  });
+
+  document.getElementById("nextDesignStepBtn").addEventListener("click", () => {
+    constructionAutoPlay = false;
+    document.getElementById("autoDesignPlayToggle").checked = false;
+    nextConstructionStep();
+  });
+
+  document.getElementById("autoDesignPlayToggle").addEventListener("change", (e) => {
+    constructionAutoPlay = e.target.checked;
+    if (constructionAutoPlay) {
+      nextConstructionStep();
+    } else {
+      clearTimeout(constructionAutoTimeout);
+    }
+  });
+  
+  // Enter key for test input
+  testStr.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      testString();
+    }
+  });
+}
+
+// Populate drag panel with variations
+function populateDragPanel(type) {
+  clearDragPanel();
+  
+  if (DFAPRESETS[type]) {
+    DFAPRESETS[type].forEach((preset, idx) => {
+      const dragItem = document.createElement('div');
+      dragItem.className = 'drag-item';
+      dragItem.draggable = true;
+      dragItem.textContent = `${idx + 1}. ${preset.description}`;
+      
+      dragItem.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', `${type}-${idx}`);
+      });
+      
+      dragItem.addEventListener('click', () => {
+        loadDFA(type, idx);
+      });
+      
+      problemDragPanel.appendChild(dragItem);
+    });
+  }
+}
+
+// Clear drag panel
+function clearDragPanel() {
+  problemDragPanel.innerHTML = '';
+}
+
+// Clear SVG canvas
+function clearSVG() {
+  const svg = document.getElementById('dfaSVG');
+  svg.innerHTML = '';
+}
+
+// Load and display a DFA
+function loadDFA(type, idx = 0) {
+  const preset = DFAPRESETS[type][idx];
+  if (!preset) return;
+  
+  CURRENT_DFA = preset;
+  
+  // Update guide
+  guide.innerHTML = `<strong>📋 ${preset.description}</strong><br><br>` + 
+    preset.guide.map(step => `• ${step}`).join('<br>');
+  
+  // Draw DFA
+  STATE_POS = drawDFA(preset, {});
+  output.innerHTML = '';
+  
+  // Setup construction animation
+  setupConstructionAnimation(preset);
+}
+
+// Setup construction step animation
+function setupConstructionAnimation(preset) {
+  clearTimeout(constructionAutoTimeout);
+  constructionStepIndex = -1;
+  
+  if (preset.constructionSteps && preset.constructionSteps.length > 0) {
+    currentConstructionSteps = preset.constructionSteps;
+    document.getElementById("prevDesignStepBtn").disabled = false;
+    document.getElementById("nextDesignStepBtn").disabled = false;
+    document.getElementById("autoDesignPlayToggle").disabled = false;
+    
+    constructionAutoPlay = document.getElementById("autoDesignPlayToggle").checked;
+    
+    if (constructionAutoPlay) {
+      nextConstructionStep();
+    }
+  } else {
+    currentConstructionSteps = null;
+    document.getElementById("prevDesignStepBtn").disabled = true;
+    document.getElementById("nextDesignStepBtn").disabled = true;
+    document.getElementById("autoDesignPlayToggle").disabled = true;
+  }
+}
+
+// Draw DFA with SVG
+function drawDFA(dfa, highlight = {}) {
+  clearSVG();
+  
+  const svg = document.getElementById("dfaSVG");
+  
+  // Create marker for arrows
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+  marker.setAttribute("id", "arr");
+  marker.setAttribute("markerWidth", "12");
+  marker.setAttribute("markerHeight", "12");
+  marker.setAttribute("refX", "12");
+  marker.setAttribute("refY", "4");
+  marker.setAttribute("orient", "auto");
+  
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M0,0 L12,4 L0,8 Z");
+  path.setAttribute("fill", "#3498db");
+  marker.appendChild(path);
+  defs.appendChild(marker);
+  svg.appendChild(defs);
+  
+  // Calculate positions
+  const n = dfa.states.length;
+  const poslist = POSITIONS[Math.min(n, POSITIONS.length - 1)] || POSITIONS[POSITIONS.length - 1];
+  const statePos = {};
+  
+  dfa.states.forEach((s, i) => {
+    const pos = poslist[i] || {x: 150 + (i % 3) * 150, y: 150 + Math.floor(i / 3) * 100};
+    statePos[s.id] = { x: pos.x + 100, y: pos.y };
+  });
+  
+  // Draw transitions first (so they appear behind states)
+  dfa.transitions.forEach(t => {
+    const highlightArrow = 
+      highlight.transitionArrow &&
+      highlight.transitionArrow.from === t.from &&
+      highlight.transitionArrow.to === t.to &&
+      highlight.transitionArrow.symbol === t.symbol;
+    
+    if (t.from !== t.to) {
+      drawArrow(statePos[t.from], statePos[t.to], t.symbol, highlightArrow);
+    } else {
+      drawSelfLoop(statePos[t.from], t.symbol, highlightArrow);
+    }
+  });
+  
+  // Draw states
+  dfa.states.forEach(s => {
+    const pos = statePos[s.id];
+    drawState(
+      pos.x, pos.y, s.id,
+      dfa.initial === s.id,
+      !!s.accept,
+      highlight.activeState === s.id
+    );
+  });
+  
+  return statePos;
+}
+
+// Draw arrow between states
+function drawArrow(from, to, label, highlight) {
+  const svg = document.getElementById("dfaSVG");
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const nx = dx / dist;
+  const ny = dy / dist;
+  
+  const startX = from.x + nx * 35;
+  const startY = from.y + ny * 35;
+  const endX = to.x - nx * 35;
+  const endY = to.y - ny * 35;
+  
+  const curve = Math.min(dist * 0.2, 50);
+  const c1x = startX + curve * ny;
+  const c1y = startY - curve * nx;
+  const c2x = endX + curve * ny;
+  const c2y = endY - curve * nx;
+  
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', `M${startX},${startY} C${c1x},${c1y} ${c2x},${c2y} ${endX},${endY}`);
+  path.setAttribute('class', 'arrow' + (highlight ? ' active' : ''));
+  path.setAttribute('marker-end', 'url(#arr)');
+  svg.appendChild(path);
+  
+  // Label
+  const midX = (startX + endX) / 2 + curve * ny * 0.5;
+  const midY = (startY + endY) / 2 - curve * nx * 0.5 - 5;
+  
+  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.textContent = label;
+  text.setAttribute('class', 'transLabel');
+  text.setAttribute('x', midX);
+  text.setAttribute('y', midY);
+  text.setAttribute('text-anchor', 'middle');
+  svg.appendChild(text);
+}
+
+// Draw self-loop
+function drawSelfLoop(pos, label, highlight) {
+  const svg = document.getElementById("dfaSVG");
+  const { x, y } = pos;
+  const r = 35;
+  
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', `M${x},${y-r} C${x+45},${y-60},${x-45},${y-60},${x},${y-r}`);
+  path.setAttribute('class', 'selfloop' + (highlight ? ' active' : ''));
+  svg.appendChild(path);
+  
+  // Label
+  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.textContent = label;
+  text.setAttribute('class', 'selfloopLabel');
+  text.setAttribute('x', x);
+  text.setAttribute('y', y - r - 35);
+  text.setAttribute('text-anchor', 'middle');
+  svg.appendChild(text);
+}
+
+// Draw state circle
+function drawState(x, y, id, initial, final, active) {
+  const svg = document.getElementById("dfaSVG");
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  
+  // Main circle
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('cx', x);
+  circle.setAttribute('cy', y);
+  circle.setAttribute('r', 30);
+  circle.setAttribute('stroke', active ? '#f39c12' : '#3498db');
+  circle.setAttribute('stroke-width', final ? '4' : '2.5');
+  circle.setAttribute('fill', active ? '#f39c12' : (final ? '#e8f5e8' : '#f8f9fa'));
+  g.appendChild(circle);
+  
+  // Final state inner circle
+  if (final) {
+    const innerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    innerCircle.setAttribute('cx', x);
+    innerCircle.setAttribute('cy', y);
+    innerCircle.setAttribute('r', 23);
+    innerCircle.setAttribute('stroke', '#27ae60');
+    innerCircle.setAttribute('stroke-width', '2.5');
+    innerCircle.setAttribute('fill', 'none');
+    g.appendChild(innerCircle);
+  }
+  
+  // Initial state arrow
+  if (initial) {
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrow.setAttribute('d', `M${x-70},${y} L${x-40},${y}`);
+    arrow.setAttribute('stroke', '#e74c3c');
+    arrow.setAttribute('stroke-width', '4');
+    arrow.setAttribute('marker-end', 'url(#arr)');
+    svg.appendChild(arrow);
+  }
+  
+  svg.appendChild(g);
+  
+  // State label
+  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.textContent = id;
+  text.setAttribute('class', 'stateLabel');
+  text.setAttribute('x', x);
+  text.setAttribute('y', y + 6);
+  text.setAttribute('text-anchor', 'middle');
+  svg.appendChild(text);
+}
+
+// Test string animation
+function testString() {
+  if (!CURRENT_DFA) {
+    output.innerHTML = '⚠️ Please select a DFA first!';
+    output.className = 'error';
+    return;
+  }
+  
+  const input = testStr.value.trim();
+  
+  // Validate input
+  for (let ch of input) {
+    if (!CURRENT_DFA.alpha.includes(ch)) {
+      output.innerHTML = `❌ Error: '${ch}' is not in alphabet {a,b}`;
+      output.className = 'error';
+      return;
+    }
+  }
+  
+  // Start animation
+  ANIMATION = animateTraverse(CURRENT_DFA, input);
+  nextAnimStep();
+}
+
+// Animation generator
+function* animateTraverse(dfa, input) {
+  let current = dfa.initial;
+  yield { activeState: current };
+  
+  for (let i = 0; i < input.length; i++) {
+    const symbol = input[i];
+    const transition = dfa.transitions.find(t => 
+      t.from === current && t.symbol === symbol
+    );
+    
+    if (!transition) {
+      yield { 
+        activeState: current, 
+        error: `No transition from ${current} on '${symbol}'` 
+      };
+      return;
+    }
+    
+    yield { 
+      activeState: current, 
+      transitionArrow: transition 
+    };
+    
+    current = transition.to;
+    yield { activeState: current };
+  }
+  
+  const finalState = dfa.states.find(s => s.id === current);
+  if (finalState && finalState.accept) {
+    yield { activeState: current, accept: true };
+  } else {
+    yield { activeState: current, reject: true };
+  }
+}
+
+// Animation step
+function nextAnimStep() {
+  if (!ANIMATION) return;
+  
+  const { value, done } = ANIMATION.next();
+  if (!value) return;
+  
+  drawDFA(CURRENT_DFA, value);
+  
+  if (value.error) {
+    output.innerHTML = `❌ ${value.error}`;
+    output.className = 'error';
+    ANIMATION = null;
+    return;
+  }
+  
+  if (value.accept) {
+    output.innerHTML = '✅ String ACCEPTED! (Final state reached)';
+    output.className = 'success';
+    ANIMATION = null;
+    return;
+  }
+  
+  if (value.reject) {
+    output.innerHTML = '❌ String REJECTED! (Not in final state)';
+    output.className = 'error';
+    ANIMATION = null;
+    return;
+  }
+  
+  if (!done) {
+    setTimeout(nextAnimStep, 900);
+  }
+}
+
+// Reset animation
+function resetAnimation() {
+  if (!CURRENT_DFA) return;
+  
+  drawDFA(CURRENT_DFA, {});
+  output.innerHTML = '';
+  output.className = '';
+  ANIMATION = null;
+}
+
+// Construction step functions
+function updateConstructionGuide() {
+  if (!currentConstructionSteps || constructionStepIndex < 0 || 
+      constructionStepIndex >= currentConstructionSteps.length) {
+    guide.innerHTML = '✅ DFA construction complete!';
+    drawDFA(CURRENT_DFA, {});
+    return;
+  }
+  
+  const step = currentConstructionSteps[constructionStepIndex];
+  guide.innerHTML = `📋 Construction Step ${constructionStepIndex + 1}/${currentConstructionSteps.length}: ${step.text}`;
+  
+  currentConstructionHighlight = step.highlight || {};
+  drawDFA(CURRENT_DFA, currentConstructionHighlight);
+}
+
+function nextConstructionStep() {
+  if (!currentConstructionSteps) return;
+  
+  if (constructionStepIndex < currentConstructionSteps.length - 1) {
+    constructionStepIndex++;
+    updateConstructionGuide();
+    
+    if (constructionAutoPlay) {
+      constructionAutoTimeout = setTimeout(nextConstructionStep, 1500);
+    }
+  } else {
+    clearTimeout(constructionAutoTimeout);
+    guide.innerHTML = '✅ DFA construction complete! Now you can test strings.';
+  }
+}
+
+function prevConstructionStep() {
+  if (!currentConstructionSteps) return;
+  
+  if (constructionStepIndex > 0) {
+    constructionStepIndex--;
+    updateConstructionGuide();
+    clearTimeout(constructionAutoTimeout);
+  }
+}
+
+// Initialize when page loads
+window.addEventListener('load', init);
+
+</script>
+</body>
+</html>
