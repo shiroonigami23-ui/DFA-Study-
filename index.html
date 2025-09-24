@@ -54,12 +54,13 @@
 </div>
 
 <div>
-  <label for="dfaType">Select DFA Type:&nbsp;
-  <select id="dfaType">
-    <option value="">Select a type</option>
-    <!-- Dynamically filled via JS -->
-  </select>
-</label>
+  <label for="dfaType">Select Type:&nbsp;</label>
+<select id="dfaType"></select>
+<div id="problemDragPanel" style="margin-bottom:10px;display:flex;gap:12px;"></div>
+<div id="problemDropZone" 
+     style="display:inline-block;padding:10px 20px;border:2px dashed #aaa;min-width:130px;margin-bottom:4px;">
+  <span id="dropText">Drop variation here</span>
+</div>
 &nbsp;&nbsp;
 <div id="problemDragPanel" style="margin-bottom:10px;display:flex;gap:12px;">
   <!-- Problem items will be added here -->
@@ -1900,7 +1901,13 @@ difference_count: [
   }
 ]
 };
-
+const dfaType = document.getElementById('dfaType');
+dfaType.innerHTML = '<option value="">Select a type</option>' +
+  Object.keys(DFAPRESETS).map(key => {
+    // Use first variant's description if available, otherwise the key
+    const firstDesc = DFAPRESETS[key][0]?.description || key;
+    return `<option value="${key}">${firstDesc}</option>`;
+  }).join('');
 const POSITIONS = [
   // up to 9 states, visually spaced
   [{x:150,y:160}], //1
@@ -2276,7 +2283,8 @@ dfaProblem.addEventListener("change", () => {
   }
 });
 // Load first DFA for instant preview
-
+dfaType.value = '';
+clearSVG();
 </script>
 </body>
 </html>
