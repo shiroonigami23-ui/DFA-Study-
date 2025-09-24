@@ -22,6 +22,23 @@
     .selfloopLabel { font-size:12px; fill:#222; }
     .stateLabel { font-size: 16px; font-weight: bold; }
     .transLabel { font-size:13px; fill:#226; }
+    @media (max-width: 700px) {
+  #app {
+    max-width: 100vw;
+    padding: 3vw;
+  }
+  #gui, #testPanel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  #dfaSVG {
+    width: 99vw;
+    min-width: 180px;
+    max-width: 100vw;
+    height: auto;
+  }
+    }
   </style>
 </head>
 <body>
@@ -1872,7 +1889,6 @@ difference_count: [
 const dfaType = document.getElementById('dfaType');
 dfaType.innerHTML = '<option value="">Select a type</option>' +
   Object.keys(DFAPRESETS).map(key => {
-    // Use first variant's description if available, otherwise the key
     const firstDesc = DFAPRESETS[key][0]?.description || key;
     return `<option value="${key}">${firstDesc}</option>`;
   }).join('');
@@ -2061,61 +2077,34 @@ function drawStateLabel(x,y,label) {
 }
 
 // --- Animation logic ---
-let CURRENT_DFA = null, STATE_POS = null, ANIMATION = null;
-
 function loadDFA(type, idx = 0) {
   const preset = DFAPRESETS[type][idx];
   CURRENT_DFA = preset;
   guide.innerHTML = `<b>${preset.description}</b><br>${preset.guide.map(x => '<div>' + x + '</div>').join('')}`;
   STATE_POS = drawDFA(preset, {});
   output.textContent = '';
+
+  // Construction step animation setup
+  clearTimeout(constructionAutoTimeout);
+  constructionStepIndex = -1;
+  if (preset && preset.constructionSteps) {
+    currentConstructionSteps = preset.constructionSteps;
+    document.getElementById("prevDesignStepBtn").disabled = false;
+    document.getElementById("nextDesignStepBtn").disabled = false;
+    document.getElementById("autoDesignPlayToggle").disabled = false;
+    constructionAutoPlay = true;
+    document.getElementById("autoDesignPlayToggle").checked = true;
+    nextConstructionStep();
+  } else {
+    currentConstructionSteps = null;
+    document.getElementById("prevDesignStepBtn").disabled = true;
+    document.getElementById("nextDesignStepBtn").disabled = true;
+    document.getElementById("autoDesignPlayToggle").disabled = true;
+    guide.textContent = "Select a problem to see construction steps and run animation.";
+    drawDFA(CURRENT_DFA || {});
+  }
 }
 
-const problemDragPanel = document.getElementById('problemDragPanel');
-const problemDropZone = document.getElementById('problemDropZone');
-const dropText = document.getElementById('dropText');
-
-// Update drag panel when DFA type changes
-dfaType.onchange = function() {
-  clearSVG();
-  output.textContent = '';
-  if (!dfaType.value) {
-    guide.innerHTML = 'Select a DFA type to see construction steps and run animation.';
-    problemDragPanel.innerHTML = '';
-    dropText.textContent = 'Drop problem here';
-    return;
-  }
-  const problems = DFAPRESETS[dfaType.value] || [];
-  problemDragPanel.innerHTML = '';
-  problems.forEach((prob, i) => {
-    let node = document.createElement('div');
-    node.textContent = prob.description || `Variant ${i+1}`;
-    node.setAttribute('draggable', true);
-    node.style.cssText = 'user-select:none;padding:7px 18px;background:#eef;border-radius:7px;box-shadow:0 2px 4px #0001;cursor:grab;';
-    node.dataset.type = dfaType.value;
-    node.dataset.idx = i;
-    node.ondragstart = e => { 
-      e.dataTransfer.setData('type', dfaType.value); 
-      e.dataTransfer.setData('idx', i); 
-    };
-    problemDragPanel.appendChild(node);
-  });
-  dropText.textContent = 'Drop problem here';
-};
-
-// Drop events
-problemDropZone.ondragover = e => { e.preventDefault(); problemDropZone.style.background = '#e0f7fa'; };
-problemDropZone.ondragleave = () => { problemDropZone.style.background = ''; };
-problemDropZone.ondrop = e => {
-  e.preventDefault();
-  let type = e.dataTransfer.getData('type');
-  let idx = +e.dataTransfer.getData('idx');
-  if (type && DFAPRESETS[type] && DFAPRESETS[type][idx]) {
-    loadDFA(type, idx);
-    dropText.textContent = `Selected: ${DFAPRESETS[type][idx].description || type}`;
-    problemDropZone.style.background = '';
-  }
-};
 function* animateTraverse(dfa, input) {
   let curr = dfa.initial;
   yield {activeState:curr};
@@ -2178,12 +2167,12 @@ let currentConstructionHighlight = {};
 function updateConstructionGuide() {
   if (!currentConstructionSteps || constructionStepIndex < 0 || constructionStepIndex >= currentConstructionSteps.length) {
     guide.textContent = "DFA construction complete.";
-    drawDFA(CURRENTDFA, {});
+    drawDFA(CURRENT_DFA, {});
     return;
   }
   guide.textContent = currentConstructionSteps[constructionStepIndex].text;
   currentConstructionHighlight = currentConstructionSteps[constructionStepIndex].highlight || {};
-  drawDFA(CURRENTDFA, currentConstructionHighlight);
+  drawDFA(CURRENT_DFA, currentConstructionHighlight);
 }
 
 // Go forward one construction step
@@ -2230,26 +2219,7 @@ document.getElementById("autoDesignPlayToggle").addEventListener("change", (e) =
 });
 
 // Reset and initialize construction when problem changes
-dfaProblem.addEventListener("change", () => {
-  clearTimeout(constructionAutoTimeout);
-  constructionStepIndex = -1;
-  if (dfaProblem.value !== "" && dfaType.value !== "" && CURRENTDFA && CURRENTDFA.constructionSteps) {
-    currentConstructionSteps = CURRENTDFA.constructionSteps;
-    document.getElementById("prevDesignStepBtn").disabled = false;
-    document.getElementById("nextDesignStepBtn").disabled = false;
-    document.getElementById("autoDesignPlayToggle").disabled = false;
-    constructionAutoPlay = true;
-    document.getElementById("autoDesignPlayToggle").checked = true;
-    nextConstructionStep();
-  } else {
-    currentConstructionSteps = null;
-    document.getElementById("prevDesignStepBtn").disabled = true;
-    document.getElementById("nextDesignStepBtn").disabled = true;
-    document.getElementById("autoDesignPlayToggle").disabled = true;
-    guide.textContent = "Select a problem to see construction steps and run animation.";
-    drawDFA(CURRENTDFA || {});
-  }
-});
+
 // Load first DFA for instant preview
 dfaType.value = '';
 clearSVG();
