@@ -1756,7 +1756,89 @@ resetBtn.onclick = ()=>{
   output.textContent='';
   ANIMATION=null;
 };
+// Construction animation control variables
+let constructionStepIndex = -1;
+let constructionAutoPlay = true;
+let constructionAutoTimeout = null;
+let currentConstructionSteps = null;
+let currentConstructionHighlight = {};
 
+// Update guide and highlight visualization for current construction step
+function updateConstructionGuide() {
+  if (!currentConstructionSteps || constructionStepIndex < 0 || constructionStepIndex >= currentConstructionSteps.length) {
+    guide.textContent = "DFA construction complete.";
+    drawDFA(CURRENTDFA, {});
+    return;
+  }
+  guide.textContent = currentConstructionSteps[constructionStepIndex].text;
+  currentConstructionHighlight = currentConstructionSteps[constructionStepIndex].highlight || {};
+  drawDFA(CURRENTDFA, currentConstructionHighlight);
+}
+
+// Go forward one construction step
+function nextConstructionStep() {
+  if (!currentConstructionSteps) return;
+  if (constructionStepIndex < currentConstructionSteps.length - 1) {
+    constructionStepIndex++;
+    updateConstructionGuide();
+    if (constructionAutoPlay) {
+      constructionAutoTimeout = setTimeout(nextConstructionStep, 1200);
+    }
+  } else {
+    clearTimeout(constructionAutoTimeout);
+  }
+}
+
+// Go backward one construction step
+function prevConstructionStep() {
+  if (!currentConstructionSteps) return;
+  if (constructionStepIndex > 0) {
+    constructionStepIndex--;
+    updateConstructionGuide();
+    clearTimeout(constructionAutoTimeout);
+  }
+}
+
+// Setup event handlers for construction animation buttons and toggle
+document.getElementById("nextDesignStepBtn").addEventListener("click", () => {
+  constructionAutoPlay = false;
+  document.getElementById("autoDesignPlayToggle").checked = false;
+  nextConstructionStep();
+});
+
+document.getElementById("prevDesignStepBtn").addEventListener("click", () => {
+  constructionAutoPlay = false;
+  document.getElementById("autoDesignPlayToggle").checked = false;
+  prevConstructionStep();
+});
+
+document.getElementById("autoDesignPlayToggle").addEventListener("change", (e) => {
+  constructionAutoPlay = e.target.checked;
+  if (constructionAutoPlay) nextConstructionStep();
+  else clearTimeout(constructionAutoTimeout);
+});
+
+// Reset and initialize construction when problem changes
+dfaProblem.addEventListener("change", () => {
+  clearTimeout(constructionAutoTimeout);
+  constructionStepIndex = -1;
+  if (dfaProblem.value !== "" && dfaType.value !== "" && CURRENTDFA && CURRENTDFA.constructionSteps) {
+    currentConstructionSteps = CURRENTDFA.constructionSteps;
+    document.getElementById("prevDesignStepBtn").disabled = false;
+    document.getElementById("nextDesignStepBtn").disabled = false;
+    document.getElementById("autoDesignPlayToggle").disabled = false;
+    constructionAutoPlay = true;
+    document.getElementById("autoDesignPlayToggle").checked = true;
+    nextConstructionStep();
+  } else {
+    currentConstructionSteps = null;
+    document.getElementById("prevDesignStepBtn").disabled = true;
+    document.getElementById("nextDesignStepBtn").disabled = true;
+    document.getElementById("autoDesignPlayToggle").disabled = true;
+    guide.textContent = "Select a problem to see construction steps and run animation.";
+    drawDFA(CURRENTDFA || {});
+  }
+});
 // Load first DFA for instant preview
 dfaType.value = '';
 clearSVG();
