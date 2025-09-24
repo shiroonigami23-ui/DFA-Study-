@@ -29,26 +29,46 @@
     <h1>Animated DFA Learning Tool</h1>
     <div id="gui">
       <div>
-        <label>DFA Type:&nbsp;
-          <select id="dfaType">
-            <option value="">Select...</option>
-            <option value="startA">Start with 'a'</option>
-            <option value="endB">End with 'b'</option>
-            <option value="mod3_0">Length ≡ 0 mod 3</option>
-            <option value="mod3_1">Length ≡ 1 mod 3</option>
-            <option value="containsAB">Contains substring "ab"</option>
-            <option value="notContainsAA">Not contain "aa"</option>
-            <option value="universal">Universal (all accepted)</option>
-            <option value="empty">Empty (none accepted)</option>
-            <option value="composite1">Start 'a' and mod 3 ≡ 1</option>
-            <option value="composite2">Ends 'b' or contains "ab"</option>
-          </select>
-        </label>
+  <label>DFA Type:&nbsp;
+    <select id="dfaType">
+      <option value="">Select...</option>
+      <option value="startA">Start with 'a'</option>
+      <option value="endB">End with 'b'</option>
+      <option value="mod30">Length ≡ 0 mod 3</option>
+      <option value="mod31">Length ≡ 1 mod 3</option>
+      <option value="containsAB">Contains substring "ab"</option>
+      <option value="notContainsAA">Not contain "aa"</option>
+      <option value="universal">Universal (all accepted)</option>
+      <option value="empty">Empty (none accepted)</option>
+      <option value="composite">Composite conditions</option>
+      <option value="binary">Binary problems</option>
+      <option value="word_conditions">Word conditions</option>
+      <option value="palindromes">Palindromes</option>
+      <option value="counting">Counting letter occurrences</option>
+      <option value="forbidden_substrings">Forbidden substrings</option>
+      <option value="pattern_repetitions">Pattern repetitions</option>
+      <option value="difference_count">Difference count constraints</option>
+      <option value="combo">Combined complexity</option>
+    </select>
+  </label>
+</div>
+
+<div>
+  <label>Select Problem:&nbsp;
+    <select id="dfaProblem" disabled>
+      <option value="">Select a problem</option>
+    </select>
+  </label>
+</div>
+
+<div id="guide">Select a DFA type to see construction steps and run animation.</div>
+      <div id="constructionControlPanel" style="margin: 10px 0;">
+  <button id="prevDesignStepBtn" disabled>Prev Design Step</button>
+  <button id="nextDesignStepBtn" disabled>Next Design Step</button>
+  <label style="margin-left: 10px;">
+    <input type="checkbox" id="autoDesignPlayToggle" checked> Auto Play DFA Design
+  </label>
       </div>
-    </div>
-
-    <div id="guide">Select a DFA type to see construction steps and run animation.</div>
-
     <svg id="dfaSVG" width="780" height="320"></svg>
 
     <div id="testPanel">
@@ -1505,64 +1525,84 @@ const svg = document.getElementById('dfaSVG');
 function clearSVG() {
   svg.innerHTML = '';
 }
-
-function drawDFA(dfa, highlight={}) {
+function drawDFA(dfa, highlight = {}, constructionStepIndex = -1) {
   clearSVG();
 
+  const svg = document.getElementById("dfaSVG");
+
   // Marker
-  const defs = document.createElementNS("http://www.w3.org/2000/svg","defs");
-  const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
-  marker.setAttribute('id','arr');
-  marker.setAttribute('markerWidth','10');
-  marker.setAttribute('markerHeight','10');
-  marker.setAttribute('refX','10');
-  marker.setAttribute('refY','3.5');
-  marker.setAttribute('orient','auto');
-  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-  path.setAttribute('d','M0,0 L10,3.5 L0,7 Z');
-  path.setAttribute('fill','#4a90e2');
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+  marker.setAttribute("id", "arr");
+  marker.setAttribute("markerWidth", "10");
+  marker.setAttribute("markerHeight", "10");
+  marker.setAttribute("refX", "10");
+  marker.setAttribute("refY", "3.5");
+  marker.setAttribute("orient", "auto");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M0,0 L10,3.5 L0,7 Z");
+  path.setAttribute("fill", "#4a90e2");
   marker.appendChild(path);
   defs.appendChild(marker);
+
+  // Remove old defs if any, then add new
+  const oldDefs = svg.querySelector("defs");
+  if (oldDefs) svg.removeChild(oldDefs);
   svg.appendChild(defs);
 
   // Layout states nicely
   const n = dfa.states.length;
-  const poslist = POSITIONS[n] || POSITIONS[POSITIONS.length-1];
+  const poslist = POSITIONS[n] || POSITIONS[POSITIONS.length - 1];
   const statePos = {};
-  dfa.states.forEach((s,i) => {
-    let {x,y} = poslist[i];
-    x += 220; y += 0; // shift visually
-    statePos[s.id] = {x, y};
+  dfa.states.forEach((s, i) => {
+    let { x, y } = poslist[i];
+    x += 220;
+    y += 0; // shift visually
+    statePos[s.id] = { x, y };
   });
+
+  // Decide what to draw depending on constructionStepIndex
+  // If constructionStepIndex < 0, draw all states and transitions
+  // Else, draw only states/transitions relevant up to that step
+
+  // For this example, fully draw (can be enhanced by mapping constructionStepIndex to states/transitions)
   // Draw transitions (arrows)
   for (const t of dfa.transitions) {
-    let {from, to, symbol} = t;
-    const highlightArrow = highlight.transitionArrow && highlight.transitionArrow.from===from && highlight.transitionArrow.to===to && highlight.transitionArrow.symbol===symbol;
+    let { from, to, symbol } = t;
+    const highlightArrow =
+      highlight.transitionArrow &&
+      highlight.transitionArrow.from === from &&
+      highlight.transitionArrow.to === to &&
+      highlight.transitionArrow.symbol === symbol;
     if (from !== to) {
       drawArrow(statePos[from], statePos[to], symbol, highlightArrow);
     } else {
       drawSelfLoop(statePos[from], symbol, highlightArrow);
     }
   }
+
   // Draw states
-  dfa.states.forEach(s => {
-    const {x, y} = statePos[s.id];
-    drawState(x, y, s.id, 
-      dfa.initial===s.id,
+  dfa.states.forEach((s) => {
+    const { x, y } = statePos[s.id];
+    drawState(
+      x,
+      y,
+      s.id,
+      dfa.initial === s.id,
       !!s.accept,
-      highlight.activeState===s.id
+      highlight.activeState === s.id
     );
   });
+
   // Draw state labels again for clarity
-  dfa.states.forEach(s => {
-    const {x, y} = statePos[s.id];
+  dfa.states.forEach((s) => {
+    const { x, y } = statePos[s.id];
     drawStateLabel(x, y, s.id);
   });
 
   // Return position mapping for use in animation
   return statePos;
 }
-
 function drawArrow(from, to, label, highlight) {
   const dx = to.x - from.x, dy = to.y - from.y;
   const len = Math.sqrt(dx*dx + dy*dy);
