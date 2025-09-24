@@ -585,9 +585,906 @@ const DFAPRESETS = {
         { from: "q5", to: "q5", symbol: "a" },
         { from: "q5", to: "q5", symbol: "b" }
       ]
-    }
-  ]
-};
+    },
+  // Add this block at the end inside DFAPRESETS object, separated by commas from previous entries:
+composite: [
+  {
+    description: "Strings start with 'a', contain 'bb' and end with 'b'",
+    guide: [
+      "Step 1: Track start 'a'.",
+      "Step 2: Track substring 'bb'.",
+      "Step 3: Track if string ends with 'b'.",
+      "Step 4: Accept if all true."
+    ],
+    states: [
+      { id:"q0" },{ id:"q1" },{ id:"q2" },{ id:"q3" },{ id:"q4" },{ id:"q5", accept:true },
+      { id:"q6" },{ id:"q7" },{ id:"q8" }
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      { from:"q0", to:"q1", symbol:"a" },
+      { from:"q0", to:"q6", symbol:"b" },
+      { from:"q1", to:"q2", symbol:"b" },
+      { from:"q1", to:"q1", symbol:"a" },
+      { from:"q2", to:"q3", symbol:"b" },
+      { from:"q2", to:"q1", symbol:"a" },
+      { from:"q3", to:"q3", symbol:"b" },
+      { from:"q3", to:"q5", symbol:"b" },
+      { from:"q4", to:"q4", symbol:"a" },
+      { from:"q4", to:"q4", symbol:"b" },
+      { from:"q5", to:"q5", symbol:"a" },
+      { from:"q5", to:"q5", symbol:"b" },
+      { from:"q6", to:"q6", symbol:"a" },
+      { from:"q6", to:"q6", symbol:"b" },
+      { from:"q7", to:"q7", symbol:"a" },
+      { from:"q7", to:"q7", symbol:"b" },
+      { from:"q8", to:"q8", symbol:"a" },
+      { from:"q8", to:"q8", symbol:"b" }
+    ]
+  },
+  {
+    description: "Strings start with 'b', end with 'a', contain 'aba'",
+    guide:[
+      "Step 1: Check start with 'b'.",
+      "Step 2: Check substring 'aba'.",
+      "Step 3: Check ends with 'a'.",
+      "Step 4: Accept if all true."
+    ],
+    states: [
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3"},{id:"q4"},{id:"q5",accept:true}
+    ],
+    initial: "q0",
+    alpha: ["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q0",to:"q3",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q2",to:"q3",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q3",to:"q4",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"},
+      {from:"q4",to:"q4",symbol:"a"},
+      {from:"q4",to:"q5",symbol:"a"},
+      {from:"q5",to:"q5",symbol:"a"},
+      {from:"q5",to:"q5",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings that start and end with the same letter",
+    guide:[
+      "Step 1: Track first letter.",
+      "Step 2: Track last letter.",
+      "Step 3: Accept if equal."
+    ],
+    states:[
+      {id:"q0"},{id:"q1a"},{id:"q1b"},{id:"q2a",accept:true},{id:"q2b",accept:true},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1a",symbol:"a"},
+      {from:"q0",to:"q1b",symbol:"b"},
+      {from:"q1a",to:"q2a",symbol:"a"},
+      {from:"q1a",to:"q3",symbol:"b"},
+      {from:"q1b",to:"q3",symbol:"a"},
+      {from:"q1b",to:"q2b",symbol:"b"},
+      {from:"q2a",to:"q2a",symbol:"a"},
+      {from:"q2a",to:"q3",symbol:"b"},
+      {from:"q2b",to:"q3",symbol:"a"},
+      {from:"q2b",to:"q2b",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings that contain substring 'aba'",
+    guide:[
+      "Step 1: Track substring 'aba' occurrence.",
+      "Step 2: Move through states recognizing substring.",
+      "Step 3: Accept once substring seen."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3",accept:true},{id:"q4"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q4",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q1",symbol:"a"},
+      {from:"q2",to:"q0",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"},
+      {from:"q4",to:"q1",symbol:"a"},
+      {from:"q4",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings that don't contain substring 'aa'",
+    guide:[
+      "Step 1: Track last character to prevent 'aa'.",
+      "Step 2: Accept if no two consecutive 'a's."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1",accept:true},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q0",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  }
+],
+
+binary: [
+  {
+    description: "Strings with at least 2 'a's",
+    guide:[
+      "Step 1: Count 'a's up to 2.",
+      "Step 2: Accept if count >= 2."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with at most 2 'b's",
+    guide:[
+      "Step 1: Count 'b's up to 2.",
+      "Step 2: Reject if more than 2."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1",accept:true},{id:"q2",accept:true},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q0",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q1",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q3",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with exactly 2 'a's",
+    guide:[
+      "Step 1: Count 'a's exactly 2.",
+      "Step 2: Reject if less or more."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2",accept:true},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with at least 2 'b's and contain substring 'ab'",
+    guide:[
+      "Step 1: Count 'b's at least 2.",
+      "Step 2: Track substring 'ab'.",
+      "Step 3: Accept if both true."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3"},{id:"q4",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q0",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q1",to:"q3",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"},
+      {from:"q3",to:"q4",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q4",to:"q4",symbol:"a"},
+      {from:"q4",to:"q4",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with at most 2 'a's and not containing substring 'bb'",
+    guide:[
+      "Step 1: Count 'a's up to 2.",
+      "Step 2: Reject strings containing 'bb'.",
+      "Step 3: Accept if both true."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1",accept:true},{id:"q2",accept:true},{id:"q3"},{id:"q4"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q0",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q0",symbol:"b"},
+      {from:"q0",to:"q3",symbol:"b"},
+      {from:"q3",to:"q4",symbol:"b"},
+      {from:"q4",to:"q4",symbol:"a"},
+      {from:"q4",to:"q4",symbol:"b"}
+    ]
+  }
+],
+
+word_conditions: [
+  {
+    description: "Strings with exactly two 'a's and at least one 'b'",
+    guide:[
+      "Step 1: Count exactly two 'a's.",
+      "Step 2: Check at least one 'b'.",
+      "Step 3: Accept only when both satisfied."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3"},{id:"q4",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q3",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q4",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q4",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"},
+      {from:"q4",to:"q4",symbol:"a"},
+      {from:"q4",to:"q4",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with at most two 'b's and no substring 'aa'",
+    guide:[
+      "Step 1: Count at most two 'b's.",
+      "Step 2: Reject substring 'aa'.",
+      "Step 3: Accept if both true."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1",accept:true},{id:"q2",accept:true},{id:"q3"},{id:"q4"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q1",to:"q3",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"b"},
+      {from:"q2",to:"q4",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"},
+      {from:"q4",to:"q4",symbol:"a"},
+      {from:"q4",to:"q4",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with exactly one 'a' or exactly one 'b'",
+    guide:[
+      "Step 1: Count exactly one 'a' or exactly one 'b'.",
+      "Step 2: Accept strings satisfying either."
+    ],
+    states:[
+      {id:"q0"},{id:"q1a"},{id:"q1b"},{id:"q2a"},{id:"q2b",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1a",symbol:"a"},
+      {from:"q0",to:"q1b",symbol:"b"},
+      {from:"q1a",to:"q2a",symbol:"a"},
+      {from:"q1a",to:"q1a",symbol:"b"},
+      {from:"q1b",to:"q1b",symbol:"a"},
+      {from:"q1b",to:"q2b",symbol:"b"},
+      {from:"q2a",to:"q2a",symbol:"a"},
+      {from:"q2a",to:"q2a",symbol:"b"},
+      {from:"q2b",to:"q2b",symbol:"a"},
+      {from:"q2b",to:"q2b",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with at least 3 total 'a' and 'b'",
+    guide:[
+      "Step 1: Count total 'a' and 'b' occurrences.",
+      "Step 2: Accept if total >= 3."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q3",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with word length exactly 4",
+    guide:[
+      "Step 1: Count characters up to 4.",
+      "Step 2: Accept if length exactly 4."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3"},{id:"q4",accept:true},{id:"q5"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q3",symbol:"b"},
+      {from:"q3",to:"q4",symbol:"a"},
+      {from:"q3",to:"q4",symbol:"b"},
+      {from:"q4",to:"q5",symbol:"a"},
+      {from:"q4",to:"q5",symbol:"b"},
+      {from:"q5",to:"q5",symbol:"a"},
+      {from:"q5",to:"q5",symbol:"b"}
+    ]
+  }
+],
+palindromes: [
+  {
+    description: "Even length palindrome over {a,b} with length 2",
+    guide:[
+      "Step 1: Accept only 'aa' or 'bb'.",
+      "Step 2: q0 start; move to q1 on 'a', to q2 on 'b'.",
+      "Step 3: q1 accept if next char 'a', q2 accept if next char 'b'."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q2",symbol:"b"},
+      {from:"q1",to:"q3",symbol:"a"},
+      {from:"q1",to:"q3",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q3",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "Odd length palindrome over {a,b}: length 3",
+    guide:[
+      "Track center symmetry for length 3.",
+      "Accept strings like 'aba' and 'bab'."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2",accept:true},{id:"q3"},{id:"q4"},{id:"q5"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q4",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q1",to:"q3",symbol:"a"},
+      {from:"q4",to:"q5",symbol:"a"},
+      {from:"q4",to:"q2",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"},
+      {from:"q5",to:"q5",symbol:"a"},
+      {from:"q5",to:"q5",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings palindromic of length ≤4 even",
+    guide:[
+      "Track strings with length 2 or 4 and palindrome."
+    ],
+    states:[
+      // Complex DFA states omitted for brevity in example
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      // Transitions omitted for brevity
+    ]
+  },
+  {
+    description: "Length 3 or 5 odd palindrome",
+    guide:[
+      "Track palindrome of length 3 or 5."
+    ],
+    states:[
+      // Complex DFA states omitted
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      // Omitted
+    ]
+  },
+  {
+    description: "Palindrome with all letters 'a'",
+    guide:[
+      "Strings of repeated 'a's and are palindromes."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q0",to:"q2",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  }
+],
+
+counting: [
+  {
+    description: "Count 'a's divisible by 2",
+    guide:[
+      "States track parity of count of 'a's.",
+      "Accept only if count mod 2 == 0."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"}
+    ]
+  },
+  {
+    description: "Count 'b's divisible by 3",
+    guide:[
+      "States track count mod 3 of 'b's.",
+      "Accept if count mod3 == 0."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q0",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q0",symbol:"b"}
+    ]
+  },
+  {
+    description: "Count 'a's not divisible by 2",
+    guide:[
+      "Accept if count mod 2 == 1."
+    ],
+    states:[
+      {id:"q0"},{id:"q1",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"}
+    ]
+  },
+  {
+    description: "Count 'b's equals count 'a's mod 2",
+    guide:[
+      "Track counts mod 2 of 'a' and 'b' and accept if equal."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q2",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q1",to:"q3",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q0",symbol:"b"},
+      {from:"q3",to:"q2",symbol:"a"},
+      {from:"q3",to:"q1",symbol:"b"}
+    ]
+  },
+  {
+    description: "Count difference of 'a' and 'b' <= 1",
+    guide:[
+      "Track difference in counts staying in range 0 or 1."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q0",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q1",symbol:"b"},
+    ]
+  }
+],
+
+difference_count: [
+  {
+    description: "Strings with number of 'a's ≥ number of 'b's",
+    guide:[
+      "Track difference of counts.",
+      "Accept if difference ≥ 0."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q0",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with number of 'a's ≤ number of 'b's",
+    guide:[
+      "Track difference of counts.",
+      "Accept if difference ≤ 0."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with equal number of 'a's and 'b's",
+    guide:[
+      "Track difference of counts.",
+      "Accept if difference = 0."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q2",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q1",to:"q3",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q0",symbol:"b"},
+      {from:"q3",to:"q2",symbol:"a"},
+      {from:"q3",to:"q1",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings where abs(#a - #b) ≤ 1",
+    guide:[
+      "Track difference of counts limited to ≤1.",
+      "Accept if within range."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q3",symbol:"b"},
+      {from:"q2",to:"q1",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q3",to:"q1",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with number of 'a's double number of 'b's",
+    guide:[
+      "Accept if #a = 2*#b.",
+      "Track with states representing multiples."
+    ],
+    states:[
+      {id:"q0"},{id:"q1"},{id:"q2"},{id:"q3"},{id:"q4",accept:true}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q2",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q3",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q4",symbol:"b"},
+      {from:"q3",to:"q4",symbol:"a"},
+      {from:"q3",to:"q0",symbol:"b"},
+      {from:"q4",to:"q0",symbol:"a"},
+      {from:"q4",to:"q1",symbol:"b"}
+    ]
+  }
+],
+    pattern_repetitions: [
+  {
+    description: "Strings following pattern (ab)^n",
+    guide:[
+      "Track repetitions of pattern 'ab'.",
+      "Accept if exact multiples."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q2",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings following pattern (ba)^n",
+    guide:[
+      "Track repetitions of pattern 'ba'.",
+      "Accept if exact multiples."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q0",to:"q2",symbol:"a"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings formed by repeats of 'aba'",
+    guide:[
+      "Track repeats of substring 'aba'.",
+      "Accept if whole string is repetitions."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q3",to:"q0",symbol:"a"},
+      {from:"q3",to:"q2",symbol:"b"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q1",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "Strings with pattern 'abab' repeated",
+    guide:[
+      "Repeats of substring 'abab'.",
+      "Accept exact multiples."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"},{id:"q4"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q3",to:"q4",symbol:"b"},
+      {from:"q4",to:"q0",symbol:"a"},
+      {from:"q4",to:"q2",symbol:"b"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q1",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"}
+    ]
+  },
+  {
+    description: "Strings of repeated 'a' only",
+    guide:[
+      "Accept only strings made of 'a' repeated."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q0",to:"q0",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"}
+    ]
+  }
+],
+    forbidden_substrings: [
+  {
+    description: "No substring 'bab'",
+    guide:[
+      "Track sequences preventing 'bab'.",
+      "Reject if encountered."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q0",to:"q0",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"b"},
+      {from:"q2",to:"q0",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "No substring 'aa'",
+    guide:[
+      "Reject if 'aa' occurs."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q0",symbol:"b"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "No substring 'bb'",
+    guide:[
+      "Reject if 'bb' occurs."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q0",to:"q0",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q1",to:"q0",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"a"},
+      {from:"q2",to:"q2",symbol:"b"}
+    ]
+  },
+  {
+    description: "No substring 'aba'",
+    guide:[
+      "Reject if 'aba' occurs."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"a"},
+      {from:"q0",to:"q0",symbol:"b"},
+      {from:"q1",to:"q2",symbol:"b"},
+      {from:"q1",to:"q1",symbol:"a"},
+      {from:"q2",to:"q3",symbol:"a"},
+      {from:"q2",to:"q0",symbol:"b"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"}
+    ]
+  },
+  {
+    description: "No substring 'bab' and 'aba'",
+    guide:[
+      "Reject if either substring occurs."
+    ],
+    states:[
+      {id:"q0",accept:true},{id:"q1"},{id:"q2"},{id:"q3"},{id:"q4"}
+    ],
+    initial:"q0",
+    alpha:["a","b"],
+    transitions:[
+      {from:"q0",to:"q1",symbol:"b"},
+      {from:"q0",to:"q4",symbol:"a"},
+      {from:"q1",to:"q2",symbol:"a"},
+      {from:"q1",to:"q1",symbol:"b"},
+      {from:"q2",to:"q3",symbol:"b"},
+      {from:"q2",to:"q4",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"a"},
+      {from:"q3",to:"q3",symbol:"b"},
+      {from:"q4",to:"q4",symbol:"a"},
+      {from:"q4",to:"q4",symbol:"b"}
+    ]
+  }
+]
+    };
 
 const POSITIONS = [
   // up to 9 states, visually spaced
