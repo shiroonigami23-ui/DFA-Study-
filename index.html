@@ -54,11 +54,18 @@
 </div>
 
 <div>
-  <label>Select Problem:&nbsp;
-    <select id="dfaProblem" disabled>
-      <option value="">Select a problem</option>
-    </select>
-  </label>
+  <label for="dfaType">Select DFA Type:&nbsp;
+  <select id="dfaType">
+    <option value="">Select a type</option>
+    <!-- Dynamically filled via JS -->
+  </select>
+</label>
+&nbsp;&nbsp;
+<label for="dfaProblem">Select Problem:&nbsp;
+  <select id="dfaProblem" disabled>
+    <option value="">Select a problem</option>
+  </select>
+</label>
 </div>
 
 <div id="guide">Select a DFA type to see construction steps and run animation.</div>
