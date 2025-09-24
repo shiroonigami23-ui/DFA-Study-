@@ -28,30 +28,7 @@
   <div id="app">
     <h1>Animated DFA Learning Tool</h1>
     <div id="gui">
-      <div>
-  <label>DFA Type:&nbsp;
-    <select id="dfaType">
-      <option value="">Select...</option>
-      <option value="startA">Start with 'a'</option>
-      <option value="endB">End with 'b'</option>
-      <option value="mod30">Length ≡ 0 mod 3</option>
-      <option value="mod31">Length ≡ 1 mod 3</option>
-      <option value="containsAB">Contains substring "ab"</option>
-      <option value="notContainsAA">Not contain "aa"</option>
-      <option value="universal">Universal (all accepted)</option>
-      <option value="empty">Empty (none accepted)</option>
-      <option value="composite">Composite conditions</option>
-      <option value="binary">Binary problems</option>
-      <option value="word_conditions">Word conditions</option>
-      <option value="palindromes">Palindromes</option>
-      <option value="counting">Counting letter occurrences</option>
-      <option value="forbidden_substrings">Forbidden substrings</option>
-      <option value="pattern_repetitions">Pattern repetitions</option>
-      <option value="difference_count">Difference count constraints</option>
-      <option value="combo">Combined complexity</option>
-    </select>
-  </label>
-</div>
+      
 
 <div>
   <label for="dfaType">Select Type:&nbsp;</label>
@@ -60,15 +37,6 @@
 <div id="problemDropZone" 
      style="display:inline-block;padding:10px 20px;border:2px dashed #aaa;min-width:130px;margin-bottom:4px;">
   <span id="dropText">Drop variation here</span>
-</div>
-&nbsp;&nbsp;
-<div id="problemDragPanel" style="margin-bottom:10px;display:flex;gap:12px;">
-  <!-- Problem items will be added here -->
-</div>
-<div id="problemDropZone" 
-     style="display:inline-block;padding:10px 20px;border:2px dashed #aaa;min-width:130px;margin-bottom:4px;">
-  <span id="dropText">Drop problem here</span>
-</div>
 </div>
 
 <div id="guide">Select a DFA type to see construction steps and run animation.</div>
