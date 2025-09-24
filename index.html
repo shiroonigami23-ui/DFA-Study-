@@ -2086,19 +2086,16 @@ function drawStateLabel(x,y,label) {
 }
 
 // --- Animation logic ---
-let CURRENT_DFA=null, STATE_POS=null, ANIMATION=null;
+let CURRENT_DFA = null, STATE_POS = null, ANIMATION = null;
 
-function loadDFA(type) {
-  const preset = DFA_PRESETS[type];
+function loadDFA(type, idx = 0) {
+  const preset = DFAPRESETS[type][idx];
   CURRENT_DFA = preset;
-  guide.innerHTML = `<b>${preset.description}</b><br>${preset.guide.map(x=>'<div>'+x+'</div>').join('')}`;
-  STATE_POS = drawDFA(preset,{});
-  output.textContent='';
+  guide.innerHTML = `<b>${preset.description}</b><br>${preset.guide.map(x => '<div>' + x + '</div>').join('')}`;
+  STATE_POS = drawDFA(preset, {});
+  output.textContent = '';
 }
-dfaType.onchange = e=>{
-  if (!dfaType.value) { guide.innerHTML="Select a DFA type to see construction steps and run animation."; clearSVG(); output.textContent=''; return; }
-  loadDFA(dfaType.value);
-};
+
 const problemDragPanel = document.getElementById('problemDragPanel');
 const problemDropZone = document.getElementById('problemDropZone');
 const dropText = document.getElementById('dropText');
@@ -2113,16 +2110,19 @@ dfaType.onchange = function() {
     dropText.textContent = 'Drop problem here';
     return;
   }
-  // Generate draggable problems (if you have variations, otherwise just one)
-  const problems = [DFAPRESETS[dfaType.value]];
+  const problems = DFAPRESETS[dfaType.value] || [];
   problemDragPanel.innerHTML = '';
   problems.forEach((prob, i) => {
     let node = document.createElement('div');
-    node.textContent = prob.description || dfaType.value;
+    node.textContent = prob.description || `Variant ${i+1}`;
     node.setAttribute('draggable', true);
     node.style.cssText = 'user-select:none;padding:7px 18px;background:#eef;border-radius:7px;box-shadow:0 2px 4px #0001;cursor:grab;';
-    node.dataset.prob = dfaType.value;
-    node.ondragstart = e => { e.dataTransfer.setData('prob', dfaType.value); };
+    node.dataset.type = dfaType.value;
+    node.dataset.idx = i;
+    node.ondragstart = e => { 
+      e.dataTransfer.setData('type', dfaType.value); 
+      e.dataTransfer.setData('idx', i); 
+    };
     problemDragPanel.appendChild(node);
   });
   dropText.textContent = 'Drop problem here';
@@ -2133,10 +2133,11 @@ problemDropZone.ondragover = e => { e.preventDefault(); problemDropZone.style.ba
 problemDropZone.ondragleave = () => { problemDropZone.style.background = ''; };
 problemDropZone.ondrop = e => {
   e.preventDefault();
-  let prob = e.dataTransfer.getData('prob');
-  if (prob && DFAPRESETS[prob]) {
-    loadDFA(prob); // Existing function
-    dropText.textContent = `Selected: ${DFAPRESETS[prob].description || prob}`;
+  let type = e.dataTransfer.getData('type');
+  let idx = +e.dataTransfer.getData('idx');
+  if (type && DFAPRESETS[type] && DFAPRESETS[type][idx]) {
+    loadDFA(type, idx);
+    dropText.textContent = `Selected: ${DFAPRESETS[type][idx].description || type}`;
     problemDropZone.style.background = '';
   }
 };
