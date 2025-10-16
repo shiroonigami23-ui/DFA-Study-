@@ -10,7 +10,7 @@ function loadDFA(dfa) {
   window.ANIMATION_GENERATOR = null;
 
   clearVisualization();
-  updateGuide(`📋 ${dfa.name}: ${dfa.description}. Press 'Next' to build.`);
+  updateGuide(`📋 ${dfa.name}: ${dfa.description}. Press 'Next' or 'Auto-play'.`);
   updateConstructionButtons();
   
   if (window.AUTO_PLAY) {
@@ -40,6 +40,21 @@ function buildAnimationSequence(dfa) {
   return sequence;
 }
 
+function renderConstructionFrame(stepIndex) {
+    clearVisualization();
+    if (stepIndex < 0) return;
+
+    for (let i = 0; i <= stepIndex; i++) {
+        const step = window.CONSTRUCTION_SEQUENCE[i];
+        if (step.action === 'drawState') {
+            drawState(step.payload, false);
+        } else if (step.action === 'drawTransition') {
+            drawTransition(step.payload, false);
+        }
+    }
+}
+
+
 function nextConstructionStep() {
   clearTimeout(window.STEP_TIMEOUT);
   if (window.CURRENT_STEP >= window.CONSTRUCTION_SEQUENCE.length - 1) {
@@ -47,14 +62,14 @@ function nextConstructionStep() {
     updateConstructionButtons();
     return;
   }
+  
   window.CURRENT_STEP++;
   const step = window.CONSTRUCTION_SEQUENCE[window.CURRENT_STEP];
   updateGuide(`🔧 Step ${window.CURRENT_STEP + 1}/${window.CONSTRUCTION_SEQUENCE.length}: ${step.description}`);
 
-  if (step.action === 'drawState') drawState(step.payload, false);
-  else if (step.action === 'drawTransition') drawTransition(step.payload, false);
-  
+  renderConstructionFrame(window.CURRENT_STEP);
   updateConstructionButtons();
+  
   if (window.AUTO_PLAY && window.CURRENT_STEP < window.CONSTRUCTION_SEQUENCE.length - 1) {
     window.STEP_TIMEOUT = setTimeout(nextConstructionStep, window.ANIMATION_SPEED / 1.5);
   }
@@ -65,12 +80,7 @@ function previousConstructionStep() {
   if (window.CURRENT_STEP < 0) return;
   window.CURRENT_STEP--;
 
-  clearVisualization();
-  for (let i = 0; i <= window.CURRENT_STEP; i++) {
-    const step = window.CONSTRUCTION_SEQUENCE[i];
-    if (step.action === 'drawState') drawState(step.payload, false);
-    else if (step.action === 'drawTransition') drawTransition(step.payload, false);
-  }
+  renderConstructionFrame(window.CURRENT_STEP);
 
   if (window.CURRENT_STEP < 0) {
     updateGuide(`📋 ${window.CURRENT_DFA.name}: ${window.CURRENT_DFA.description}. Press 'Next' to build.`);
