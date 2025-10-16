@@ -5,106 +5,102 @@
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
   <title>Advanced DFA Learning Studio</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="app-container">
-    <!-- Header -->
     <div class="header">
       <h1>🚀 Advanced DFA Learning Studio</h1>
-      <p>Professional-grade interactive visualization and learning tool for Deterministic Finite Automata</p>
+      <p>An interactive tool for visualizing Deterministic Finite Automata</p>
     </div>
-    <!-- Main Content -->
     <div class="main-content">
-      <!-- Control Panel -->
-      <div class="control-panel">
-        <h2 class="section-title">🎛️ Control Panel</h2>
-        <div class="form-group">
-          <label for="dfaCategory">Select DFA Category:</label>
-          <select id="dfaCategory">
-            <option value="">Choose a category...</option>
-          </select>
-        </div>
-        <div id="variationsContainer" style="display: none;">
-          <label>📚 Available Variations:</label>
-          <div class="variations-grid" id="variationsGrid"></div>
-        </div>
-        <div class="form-group">
-          <label>🎬 Construction Animation:</label>
-          <div class="construction-controls">
-            <button disabled id="prevStepBtn">⬅️ Previous</button>
-            <button disabled id="nextStepBtn">Next ➡️</button>
-            <button disabled id="restartStepsBtn">🔄 Restart</button>
+      <div class="control-panel" id="control-panel">
+        <button id="panel-toggle" title="Toggle Panel">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="panel-content">
+          <h2 class="section-title">🎛️ Controls</h2>
+          <div class="form-group">
+            <label for="dfaCategory">Select DFA Category:</label>
+            <select id="dfaCategory">
+              <option value="">Choose a category...</option>
+            </select>
           </div>
-          <div class="auto-play-control">
-            <input checked id="autoPlayToggle" type="checkbox"/>
-            <label for="autoPlayToggle">Auto-play construction steps</label>
+          <div id="variationsContainer" style="display: none;">
+            <label>📚 Available Variations:</label>
+            <div class="variations-grid" id="variationsGrid"></div>
           </div>
-        </div>
-        <div class="form-group">
-          <label>🧪 String Testing:</label>
-          <div class="test-controls">
-            <input id="testInput" maxlength="50" placeholder="Enter test string (a,b)"/>
-            <button id="testBtn">🎮 Test</button>
-            <button id="resetBtn">🔄 Reset</button>
+          <div class="form-group">
+            <label>🎬 Construction Animation:</label>
+            <div class="construction-controls">
+              <button disabled id="prevStepBtn">⬅️ Previous</button>
+              <button disabled id="nextStepBtn">Next ➡️</button>
+              <button disabled id="restartStepsBtn">🔄 Restart</button>
+            </div>
+            <div class="auto-play-control">
+              <input checked id="autoPlayToggle" type="checkbox"/>
+              <label for="autoPlayToggle">Auto-play</label>
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label>⚡ Quick Actions:</label>
-          <div class="button-group">
-            <button id="randomTestBtn">🎲 Random</button>
-            <button id="stepModeBtn">👣 Step Mode</button>
+          <div class="form-group">
+            <label>🧪 String Testing:</label>
+            <div class="test-controls">
+              <input id="testInput" maxlength="50" placeholder="Enter test string..."/>
+              <button id="testBtn">🎮 Test</button>
+              <button id="resetBtn">🔄 Reset</button>
+            </div>
           </div>
-          <div class="button-group">
-            <button id="fullSpeedBtn">⚡ Fast</button>
-            <button id="slowSpeedBtn">🐌 Slow</button>
+          <div class="form-group">
+            <label>⚡ Speed:</label>
+            <div class="button-group">
+              <button id="slowSpeedBtn">🐌 Slow</button>
+              <button id="stepModeBtn">Normal</button>
+              <button id="fullSpeedBtn">⚡ Fast</button>
+            </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label>🔧 Advanced Features:</label>
-          <div class="button-group">
-            <button id="exportBtn">📤 Export</button>
-          </div>
-          <div class="button-group">
-            <button id="saveBtn">💾 Save</button>
-            <button id="loadBtn">📂 Load</button>
+          <div class="form-group">
+            <label>🔧 Advanced:</label>
+            <div class="button-group">
+              <button id="randomTestBtn">🎲 Random</button>
+              <button id="exportBtn">📤 Export</button>
+            </div>
+             <div class="button-group">
+              <button id="saveBtn">💾 Save</button>
+              <button id="loadBtn">📂 Load</button>
+            </div>
           </div>
         </div>
       </div>
-      <!-- Visualization Panel -->
       <div class="visualization-panel">
-        <h2 class="section-title">📊 DFA Visualization</h2>
         <div class="guide-panel" id="guidePanel">
           <div class="guide-content" id="guideContent">
-            🎯 Select a DFA category and variation to begin learning!
+            🎯 Select a DFA category to begin learning!
           </div>
         </div>
         <div class="canvas-flex">
           <div class="svg-container">
             <div class="canvas-wrapper">
-              <svg id="dfaSVG" viewbox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+              <svg id="dfaSVG" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <marker id="arrowhead" markerheight="7" markerwidth="10" orient="auto" refx="10" refy="3.5">
-                    <polygon fill="#4299e1" points="0 0, 10 3.5, 0 7"></polygon>
+                  <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5568"></path>
                   </marker>
-                  <marker id="arrowhead-active" markerheight="7" markerwidth="10" orient="auto" refx="10" refy="3.5">
-                    <polygon fill="#f6ad55" points="0 0, 10 3.5, 0 7"></polygon>
+                  <marker id="arrowhead-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#f6ad55"></path>
                   </marker>
                 </defs>
-                <text class="state-label" style="font-size: 18px; fill: #a0aec0;" text-anchor="middle" x="50%" y="50%">
-                  Select a DFA to visualize
-                </text>
               </svg>
             </div>
           </div>
           <div class="zoom-controls">
-            <button id="zoomInBtn">➕ Zoom In</button>
-            <button id="zoomOutBtn">➖ Zoom Out</button>
-            <button id="resetZoomBtn">🔄 Reset</button>
-            <input id="zoomSlider" max="800" min="20" type="range" value="100"/>
+            <button id="zoomInBtn" title="Zoom In">➕</button>
+            <input id="zoomSlider" type="range" min="20" max="400" value="100" title="Zoom">
+            <button id="zoomOutBtn" title="Zoom Out">➖</button>
+            <button id="resetZoomBtn" title="Reset Zoom">🔄</button>
           </div>
         </div>
         <div class="test-panel">
-          <h3 style="margin-bottom: 15px; color: #4a5568;">🎯 Test Results</h3>
+          <h3>🎯 Test Results</h3>
           <div class="output-display" id="outputDisplay">
             Ready to test your DFA knowledge!
           </div>
@@ -112,7 +108,6 @@
       </div>
     </div>
   </div>
-  <!-- Save/Load Modal -->
   <div class="modal" id="saveLoadModal">
     <div class="modal-content">
       <span class="close">×</span>
@@ -123,7 +118,7 @@
       </div>
       <div class="form-group">
         <label for="dfaData">DFA Data (JSON):</label>
-        <textarea id="dfaData" rows="10" style="width: 100%; font-family: monospace;"></textarea>
+        <textarea id="dfaData" rows="10"></textarea>
       </div>
       <div class="button-group">
         <button id="confirmSaveLoad">Save</button>
@@ -140,5 +135,7 @@
   <script src="main.js"></script>
 </body>
 </html>
+
+
 
 
