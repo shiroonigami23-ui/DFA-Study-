@@ -31,12 +31,12 @@
         <div class="form-group">
           <label>🎬 Construction Animation:</label>
           <div class="construction-controls">
-            <button disabled="" id="prevStepBtn">⬅️ Previous</button>
-            <button disabled="" id="nextStepBtn">Next ➡️</button>
-            <button disabled="" id="restartStepsBtn">🔄 Restart</button>
+            <button disabled id="prevStepBtn">⬅️ Previous</button>
+            <button disabled id="nextStepBtn">Next ➡️</button>
+            <button disabled id="restartStepsBtn">🔄 Restart</button>
           </div>
           <div class="auto-play-control">
-            <input checked="" id="autoPlayToggle" type="checkbox"/>
+            <input checked id="autoPlayToggle" type="checkbox"/>
             <label for="autoPlayToggle">Auto-play construction steps</label>
           </div>
         </div>
@@ -78,7 +78,6 @@
             🎯 Select a DFA category and variation to begin learning!
           </div>
         </div>
-        <!-- Custom Builder Panel (Hidden by default) -->
         <div class="canvas-flex">
           <div class="svg-container">
             <div class="canvas-wrapper">
@@ -91,7 +90,7 @@
                     <polygon fill="#f6ad55" points="0 0, 10 3.5, 0 7"></polygon>
                   </marker>
                 </defs>
-                <text class="state-label" style="font-size: 18px; fill: #a0aec0;" text-anchor="middle" x="400" y="200">
+                <text class="state-label" style="font-size: 18px; fill: #a0aec0;" text-anchor="middle" x="50%" y="50%">
                   Select a DFA to visualize
                 </text>
               </svg>
@@ -134,7 +133,12 @@
   </div>
 
   <script src="dfa-library.js"></script>
+  <script src="renderer.js"></script>
+  <script src="ui.js"></script>
+  <script src="dfa-logic.js"></script>
+  <script src="controls.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
+
 
